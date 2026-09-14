@@ -10,6 +10,9 @@ const supabaseHost = (() => {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Next génère sinon AGENTS.md et CLAUDE.md à chaque démarrage.
+  agentRules: false,
+
   images: {
     unoptimized: true,
     remotePatterns: supabaseHost

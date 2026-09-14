@@ -47,3 +47,7 @@ Thumbs.db
 *~
 .idea/
 .vscode/
+
+# Fichiers de consignes générés par Next pour les assistants IA
+AGENTS.md
+CLAUDE.md
