@@ -25,7 +25,7 @@ sont deux mondes séparés, ce qui évite tout conflit entre le CSS de la page e
 | `assets/*.woff2` | Les fichiers de la police |
 | `assets/*.js` | jQuery, le moteur d'animation Webflow, GSAP |
 | `assets/*.avif`, `*.jpg`, `*.svg` | Les images |
-| `assets/*.mp4` | Les vidéos de fond (hero, appel à l'action) |
+| `assets/*.webm`, `*.mp4` | Les vidéos de fond (hero, appel à l'action) |
 | `nyx-logo-light.svg`, `nyx-logo-dark.svg` | Le logo, écrit à la main |
 
 **Rien n'est chargé depuis Internet.** La page fonctionne hors ligne — c'est vérifiable
@@ -75,8 +75,15 @@ d'images ramenés à 15**, et 1,9 Mo à 370 ko, sans différence visible.
 
 ## Notes
 
-- Les vidéos de fond ne sont fournies qu'en `.mp4`. L'export d'origine les livrait
-  aussi en `.webm`, format que seuls de très vieux navigateurs exigent : 5 Mo pour une
-  compatibilité qui ne sert plus. Tous les navigateurs actuels lisent le `.mp4`.
+- **Les vidéos de fond existent en deux formats, et les deux sont nécessaires.**
+  Le `.mp4` est encodé en H.264 profil *Main*. Or Firefox, sur les distributions Linux
+  qui ne peuvent pas distribuer de codecs brevetés (Fedora, Debian…), ne dispose que
+  d'OpenH264, limité au profil *Baseline* : il ne sait donc pas décoder ces fichiers.
+  Le `.webm` (VP9, libre de droits) est ce qui fait fonctionner la page chez ces
+  utilisateurs. Il est proposé en premier dans les balises `<source>`, car il est
+  aussi le plus léger ; le `.mp4` sert de repli pour les Safari antérieurs à 14.1.
+- Les `.webm` d'origine étaient en VP8 à 2,4 Mbit/s, soit 1,8 Mo pour six secondes de
+  décor flouté. Réencodés en VP9, ils pèsent environ 190 ko chacun sans différence
+  visible.
 - Les portraits de la section « À qui s'adresse Nyx » viennent du modèle d'origine :
   ce sont des photos de banque d'images illustrant des profils types.
