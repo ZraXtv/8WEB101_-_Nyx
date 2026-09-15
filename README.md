@@ -45,8 +45,7 @@ dans le fil.
 
 ## Démarrer
 
-**Prérequis** : Node 20 ou plus récent, `pnpm`, et un projet Supabase — **créé en région
-de votre choix**, ce qui soutient le volet RGPD du cahier des charges.
+**Prérequis** : Node 20 ou plus récent, `pnpm`, et un projet Supabase **créé en région de votre choix**.
 
 ```bash
 pnpm install
