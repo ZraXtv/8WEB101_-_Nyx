@@ -25,7 +25,7 @@ sont deux mondes séparés, ce qui évite tout conflit entre le CSS de la page e
 | `assets/*.woff2` | Les fichiers de la police |
 | `assets/*.js` | jQuery, le moteur d'animation Webflow, GSAP |
 | `assets/*.avif`, `*.jpg`, `*.svg` | Les images |
-| `assets/*.mp4`, `*.webm` | Les vidéos de fond (hero, appel à l'action) |
+| `assets/*.mp4` | Les vidéos de fond (hero, appel à l'action) |
 | `nyx-logo-light.svg`, `nyx-logo-dark.svg` | Le logo, écrit à la main |
 
 **Rien n'est chargé depuis Internet.** La page fonctionne hors ligne — c'est vérifiable
@@ -75,8 +75,8 @@ d'images ramenés à 15**, et 1,9 Mo à 370 ko, sans différence visible.
 
 ## Notes
 
-- Les vidéos de fond pèsent 5,5 Mo à elles seules, en deux formats (`.webm` et `.mp4`)
-  pour couvrir tous les navigateurs. Supprimer les `.webm` diviserait ce poids par deux,
-  au prix de la compatibilité avec quelques navigateurs anciens.
+- Les vidéos de fond ne sont fournies qu'en `.mp4`. L'export d'origine les livrait
+  aussi en `.webm`, format que seuls de très vieux navigateurs exigent : 5 Mo pour une
+  compatibilité qui ne sert plus. Tous les navigateurs actuels lisent le `.mp4`.
 - Les portraits de la section « À qui s'adresse Nyx » viennent du modèle d'origine :
   ce sont des photos de banque d'images illustrant des profils types.
