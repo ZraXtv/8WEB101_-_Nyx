@@ -45,7 +45,7 @@ dans le fil.
 
 ## Démarrer
 
-**Prérequis** : Node 20 ou plus récent, `pnpm`, et un projet Supabase **créé en région de votre choix**.
+**Prérequis** : Node 20 ou plus récent, `pnpm`, et un projet Supabase **créé dans la région de votre choix**.
 
 ```bash
 pnpm install
