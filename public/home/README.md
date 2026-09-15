@@ -48,9 +48,8 @@ réécrire la page à la main pour obtenir quelque chose de lisible.
 C'est sans risque : les textes sont entre les balises, pas dans le code.
 
 **Changer une image.** Dépose la nouvelle dans `assets/`, puis cherche l'ancien nom de
-fichier dans `index.html` et remplace-le. Attention aux attributs `srcset`, qui listent
-plusieurs tailles de la même image : il faut les remplacer toutes, ou supprimer
-l'attribut entier.
+fichier dans `index.html` et remplace-le. Il n'y a qu'un seul fichier par visuel : les
+attributs `srcset`, qui listaient jusqu'à cinq tailles de la même image, ont été retirés.
 
 **Changer le logo.** Édite `nyx-logo-light.svg` (fond sombre) et `nyx-logo-dark.svg`
 (fond clair). Ce sont de vrais fichiers SVG lisibles, écrits à la main.
@@ -63,12 +62,21 @@ chercher cette classe dans le fichier.
 automatique. En HTML, les espaces entre éléments comptent, et un reformatage peut
 décaler la mise en page.
 
+## Choix faits sur les images
+
+L'export Webflow livrait chaque photo en trois à cinq tailles, listées dans un attribut
+`srcset` pour que le navigateur choisisse la plus adaptée. En pratique, sur cette page :
+les portraits s'affichent à 445 px et les pastilles rondes de la section « avant / après »
+à **32 px** — pour lesquelles on embarquait des fichiers allant jusqu'à 1600 px.
+
+Une seule taille a donc été conservée par visuel, choisie à environ une fois et demie sa
+taille d'affichage pour rester net sur les écrans à forte densité. Résultat : **51 fichiers
+d'images ramenés à 15**, et 1,9 Mo à 370 ko, sans différence visible.
+
 ## Notes
 
 - Les vidéos de fond pèsent 5,5 Mo à elles seules, en deux formats (`.webm` et `.mp4`)
   pour couvrir tous les navigateurs. Supprimer les `.webm` diviserait ce poids par deux,
   au prix de la compatibilité avec quelques navigateurs anciens.
-- GSAP et ScrollTrigger sont chargés **deux fois** : l'export Webflow les incluait
-  depuis deux sources. C'est sans effet visible, mais c'est 140 ko inutiles.
 - Les portraits de la section « À qui s'adresse Nyx » viennent du modèle d'origine :
   ce sont des photos de banque d'images illustrant des profils types.
