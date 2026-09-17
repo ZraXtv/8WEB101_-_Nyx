@@ -406,6 +406,14 @@ export type Database = {
           short_name: string
           league: string
           country: string
+          /** Identifiant chez TheSportsDB ; nul tant que l'équipe n'est pas raccordée. */
+          provider_team_id: string | null
+          /** Libellé du championnat chez le fournisseur ('French Ligue 1'). */
+          provider_league: string | null
+          badge_url: string | null
+          discovered_by: string | null
+          /** Vrai pour les équipes proposées à l'ouverture, fausses pour celles trouvées par recherche. */
+          is_catalogue: boolean
         }
         Insert: never
         Update: never
@@ -481,6 +489,16 @@ export type Database = {
       set_member_role: {
         Args: { p_server_id: string; p_profile_id: string; p_role: ServerRole }
         Returns: undefined
+      }
+      ensure_team: {
+        Args: {
+          p_provider_id: string
+          p_sport_id: string
+          p_name: string
+          p_league: string
+          p_badge_url: string | null
+        }
+        Returns: string
       }
     }
     Enums: {

@@ -141,6 +141,33 @@ du fichier puis rejoue-le, ou édite la table depuis le **Table Editor**.
 propres lignes. `UPDATE` n'est volontairement accordé à personne — suivre ou ne plus
 suivre, c'est ajouter ou retirer une ligne.
 
+## 1 duodecies. Raccordement au fournisseur de résultats
+
+Même opération avec `supabase/migrations/0012_sport_fournisseur.sql`. Rejouable
+sans risque.
+
+Elle ajoute à `teams` l'identifiant de l'équipe chez **TheSportsDB**, son blason,
+et de quoi enregistrer une équipe trouvée par recherche. Les 18 clubs de Ligue 1
+sont raccordés, identifiants vérifiés un par un le 2026-09-17.
+
+**Pourquoi la recherche plutôt qu'un plus gros catalogue.** Le palier gratuit du
+fournisseur plafonne toute liste de championnat à 10 équipes : impossible d'en
+tirer un effectif complet. Et un catalogue écrit à la main vieillit — celui de
+0011 donnait déjà Nantes et Metz en Ligue 1 alors qu'ils jouent en Ligue 2. La
+liste locale n'est donc plus qu'une suggestion ; la recherche couvre le reste.
+
+**La seule porte d'écriture** sur le catalogue est la fonction `ensure_team`, en
+`security definer`. Elle n'est appelée que par une action serveur qui a relu
+l'équipe chez le fournisseur par son identifiant : la page n'envoie jamais de
+nom ni de blason. La fonction valide tout de même ses entrées, refuse de
+réécrire une équipe existante, et marque ce qu'elle crée comme « trouvé » plutôt
+que « catalogue », avec l'identifiant de son auteur.
+
+**Clé d'accès.** Renseigne `SPORTSDB_KEY` dans `.env.local` (voir `.env.example`).
+Sans elle, la clé de test publique `123` est utilisée : elle marche, mais répond
+429 au bout d'une trentaine d'appels rapprochés. **Jamais de préfixe
+`NEXT_PUBLIC_`** sur cette variable, sinon la clé part dans le navigateur.
+
 ## 2. Vérifier
 
 Va dans **Table Editor**. Tu dois voir quinze tables : `profiles`, `servers`,
