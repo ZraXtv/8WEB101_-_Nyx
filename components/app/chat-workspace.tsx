@@ -197,6 +197,12 @@ export function ChatWorkspace({
             otherDeliveredAt={otherDeliveredAt}
             typingNames={typingNames}
             showStatus={Boolean(conversation)}
+            widget={
+              <StatusWidget
+                serverName={channel ? sousTitre : null}
+                channelCount={server?.channels.length ?? 0}
+              />
+            }
             onOpenGame={() => setJeuOuvert(true)}
             gameActive={Boolean(game && game.status !== 'finished')}
           />
@@ -236,11 +242,6 @@ export function ChatWorkspace({
           onChange={refreshGame}
         />
       )}
-
-      <StatusWidget
-        serverName={channel ? sousTitre : null}
-        channelCount={server?.channels.length ?? 0}
-      />
     </main>
   )
 }

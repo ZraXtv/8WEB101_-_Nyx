@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { AlertCircle, Gamepad2, Loader2, Trophy } from 'lucide-react'
 import type { ChatMessage } from '@/lib/types'
 import { MessageGroup } from '@/components/app/message-group'
@@ -43,6 +43,7 @@ export function ChatArea({
   otherDeliveredAt,
   typingNames,
   showStatus,
+  widget,
   onOpenGame,
   gameActive,
 }: {
@@ -66,6 +67,11 @@ export function ChatArea({
    * privés : dans un salon à plusieurs, l'information n'a pas de sens clair.
    */
   showStatus: boolean
+  /**
+   * Encart du serveur courant, placé sous l'en-tête. Il vit ici pour être
+   * dans le flux sur téléphone : posé plus haut, il recouvrait les messages.
+   */
+  widget: ReactNode
   /** Ouvre le Puissance 4 de ce fil. */
   onOpenGame: () => void
   /** Une partie est en cours ici : on le signale sur le bouton. */
@@ -103,6 +109,8 @@ export function ChatArea({
           )}
         </button>
       </header>
+
+      {widget}
 
       <div className="no-scrollbar flex-1 overflow-y-auto px-4 pb-28 pt-4">
         <div className="mx-auto flex w-full max-w-xl flex-col gap-4">
