@@ -387,6 +387,68 @@ export type Database = {
         Update: never
         Relationships: []
       }
+      sports: {
+        Row: {
+          id: string
+          name: string
+          emoji: string
+          position: number
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      teams: {
+        Row: {
+          id: string
+          sport_id: string
+          name: string
+          short_name: string
+          league: string
+          country: string
+        }
+        Insert: never
+        Update: never
+        Relationships: [
+          {
+            foreignKeyName: "teams_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "sports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_follows: {
+        Row: {
+          profile_id: string
+          team_id: string
+          created_at: string
+        }
+        Insert: {
+          profile_id: string
+          team_id: string
+          created_at?: string
+        }
+        /** Suivre ou ne plus suivre : on ajoute ou on retire, jamais on ne modifie. */
+        Update: never
+        Relationships: [
+          {
+            foreignKeyName: "team_follows_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_follows_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: { [_ in never]: never }
     Functions: {
@@ -440,6 +502,8 @@ export type DmConversation = Database['public']['Tables']['dm_conversations']['R
 export type DirectMessage = Database['public']['Tables']['direct_messages']['Row']
 export type DmRead = Database['public']['Tables']['dm_reads']['Row']
 export type Game = Database['public']['Tables']['games']['Row']
+export type Sport = Database['public']['Tables']['sports']['Row']
+export type Team = Database['public']['Tables']['teams']['Row']
 
 /** Un message accompagné de l'auteur, tel que renvoyé par la jointure. */
 export type MessageWithAuthor = Message & {

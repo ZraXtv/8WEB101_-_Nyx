@@ -125,10 +125,28 @@ Les politiques d'insertion n'acceptent plus que `kind = 'user'` signé de son pr
 identifiant : **un client ne peut pas fabriquer un faux message système**. Seules les
 fonctions du jeu, en security definer, en posent.
 
+## 1 undecies. Suivi sportif
+
+Même opération avec `supabase/migrations/0011_sport.sql`. Rejouable sans risque.
+
+Elle crée le catalogue (`sports`, `teams`) et les équipes suivies par chacun
+(`team_follows`), puis remplit le catalogue : 3 sports et 86 équipes, effectifs de
+la saison 2025-2026.
+
+**Le catalogue est en lecture seule pour les clients** : aucun privilège d'écriture
+n'est accordé dessus. Pour corriger une montée ou une descente, modifie les lignes
+du fichier puis rejoue-le, ou édite la table depuis le **Table Editor**.
+
+**Les suivis sont privés** : la RLS ne laisse voir, ajouter et retirer que ses
+propres lignes. `UPDATE` n'est volontairement accordé à personne — suivre ou ne plus
+suivre, c'est ajouter ou retirer une ligne.
+
 ## 2. Vérifier
 
-Va dans **Table Editor**. Tu dois voir six tables :
-`profiles`, `servers`, `server_members`, `channels`, `messages`, `channel_reads`.
+Va dans **Table Editor**. Tu dois voir quinze tables : `profiles`, `servers`,
+`server_members`, `channels`, `messages`, `channel_reads`, `friendships`,
+`dm_conversations`, `direct_messages`, `dm_reads`, `user_presence`, `games`,
+`sports`, `teams`, `team_follows`.
 
 Puis **Authentication → Policies** : chaque table doit afficher
 « RLS enabled » et plusieurs politiques.
@@ -139,7 +157,8 @@ Le plus simple reste la commande fournie, depuis la racine du projet :
 pnpm check:supabase
 ```
 
-Elle contrôle `.env.local`, joint le projet et vérifie les six tables.
+Elle contrôle `.env.local`, joint le projet et vérifie les quinze tables, en
+nommant la migration manquante le cas échéant.
 
 ## 3. Régler l'authentification
 

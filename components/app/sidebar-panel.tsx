@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Hash, LogIn, LogOut, Menu, Plus, Settings, Users, X } from 'lucide-react'
+import { ArrowLeft, Hash, LogIn, LogOut, Menu, Plus, Settings, Trophy, Users, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { logout } from '@/app/auth/actions'
 import { createChannel, createServer, type ActionState } from '@/app/chat/actions'
@@ -15,6 +15,7 @@ import { Avatar } from '@/components/app/avatar'
 import { ProfileDialog } from '@/components/app/profile-dialog'
 import { FriendsDialog } from '@/components/app/friends-dialog'
 import { ServerDialog } from '@/components/app/server-dialog'
+import { SportDialog } from '@/components/app/sport-dialog'
 import { joinServer, type ServerState } from '@/app/chat/server-actions'
 
 type Props = {
@@ -52,6 +53,7 @@ export function SidebarPanel({
   const [amisOuvert, setAmisOuvert] = useState(false)
   const [serveurOuvert, setServeurOuvert] = useState(false)
   const [rejoindreOuvert, setRejoindreOuvert] = useState(false)
+  const [sportOuvert, setSportOuvert] = useState(false)
 
   const demandesRecues = friends.filter((f) => f.kind === 'incoming').length
   const selectedChannelId = source?.kind === 'channel' ? source.id : null
@@ -118,6 +120,16 @@ export function SidebarPanel({
                 {demandesRecues}
               </span>
             )}
+          </button>
+
+          {/* Sport */}
+          <button
+            type="button"
+            onClick={() => setSportOuvert(true)}
+            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-foreground/90 transition-colors hover:bg-secondary"
+          >
+            <Trophy className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className="flex-1">Sport</span>
           </button>
 
           {/* Messages privés */}
@@ -359,6 +371,12 @@ export function SidebarPanel({
           onOpenConversationWith(profileId)
           setOpen(false)
         }}
+      />
+
+      <SportDialog
+        currentUserId={currentUserId}
+        open={sportOuvert}
+        onClose={() => setSportOuvert(false)}
       />
 
       {profile && (

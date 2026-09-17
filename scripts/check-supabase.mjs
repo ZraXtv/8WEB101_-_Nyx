@@ -69,6 +69,10 @@ const tables = [
   ['direct_messages', '0004'],
   ['dm_reads', '0005'],
   ['user_presence', '0006'],
+  ['games', '0009'],
+  ['sports', '0011'],
+  ['teams', '0011'],
+  ['team_follows', '0011'],
 ]
 
 for (const [table, migration] of tables) {
