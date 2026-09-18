@@ -29,6 +29,12 @@ lecture, l'indicateur « en train d'écrire » et les pastilles en ligne / hors 
 sont appliquées par la base de données, jamais par le navigateur. La fin de partie est annoncée
 dans le fil.
 
+**Suivi sportif.** On choisit ses équipes dans une liste proposée ou en cherchant n'importe quel
+club chez un fournisseur de résultats, blason compris. Un encart permanent, visible depuis toute
+l'application, affiche leurs rencontres : score en direct, prochain match, dernier résultat. La
+clé du fournisseur reste côté serveur et les réponses sont mises en cache, faute de quoi son
+palier gratuit serait épuisé en quelques minutes.
+
 ---
 
 ## Pile technique
