@@ -41,8 +41,21 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`dark bg-background ${bodyFont.variable} ${headingFont.variable}`}>
-      <body className="antialiased font-sans">
+    // suppressHydrationWarning : les extensions de navigateur (Dark Reader,
+    // Grammarly, gestionnaires de mots de passe) ajoutent leurs propres
+    // attributs sur <html> et <body> avant que React n'hydrate la page. Le
+    // rendu du serveur ne correspond alors plus à celui du navigateur, et
+    // React signale une erreur pour quelque chose qui ne vient pas du projet.
+    //
+    // L'effet est volontairement limité : la suppression ne vaut que pour les
+    // attributs de CES deux balises, pas pour leur contenu. Une vraie
+    // incohérence d'hydratation ailleurs dans l'arbre sera toujours signalée.
+    <html
+      lang="en"
+      className={`dark bg-background ${bodyFont.variable} ${headingFont.variable}`}
+      suppressHydrationWarning
+    >
+      <body className="antialiased font-sans" suppressHydrationWarning>
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
