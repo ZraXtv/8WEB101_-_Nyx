@@ -51,3 +51,9 @@ Thumbs.db
 # Fichiers de consignes générés par Next pour les assistants IA
 AGENTS.md
 CLAUDE.md
+
+# Copies du projet placées par erreur DANS le projet.
+# La racine de ce dépôt est déjà le projet lui-même : un dossier
+# « jeans-platform… » ici est forcément un doublon commité par mégarde,
+# comme jeans-platform-2/ l'a été.
+/jeans-platform*/
