@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { idUtilisateur } from '@/lib/supabase/auth'
 
 export type ActionState = { error: string | null }
 
@@ -17,13 +18,11 @@ export async function createServer(_prev: ActionState, formData: FormData): Prom
   }
 
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const userId = await idUtilisateur(supabase)
 
-  if (!user) return { error: 'Session expirée, reconnecte-toi.' }
+  if (!userId) return { error: 'Session expirée, reconnecte-toi.' }
 
-  const { error } = await supabase.from('servers').insert({ name, owner_id: user.id })
+  const { error } = await supabase.from('servers').insert({ name, owner_id: userId })
   if (error) return { error: error.message }
 
   revalidatePath('/chat')

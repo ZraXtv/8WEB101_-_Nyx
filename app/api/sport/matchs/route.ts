@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { idUtilisateur } from '@/lib/supabase/auth'
 import { matchsDeLEquipe, type Match } from '@/lib/sport/fournisseur'
 
 /**
@@ -32,18 +33,16 @@ function comparer(a: Match, b: Match): number {
 
 export async function GET() {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const userId = await idUtilisateur(supabase)
 
-  if (!user) {
+  if (!userId) {
     return NextResponse.json({ error: 'Connexion requise.' }, { status: 401 })
   }
 
   const { data, error } = await supabase
     .from('team_follows')
     .select('team:teams(name, provider_team_id)')
-    .eq('profile_id', user.id)
+    .eq('profile_id', userId)
 
   if (error) {
     // Les tables du suivi sportif peuvent ne pas exister : le widget doit

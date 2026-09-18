@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState, useTransition } from 'react'
 import Image from 'next/image'
-import { useRouter } from 'next/navigation'
+import { imageNonOptimisable } from '@/lib/utils'
 import {
   AlertCircle, Check, CheckCircle2, Copy, Crown, Loader2,
   LogOut, RefreshCw, Shield, Trash2, Upload, UserMinus, X,
@@ -28,7 +28,6 @@ export function ServerDialog({
   onClose: () => void
   estEnLigne: (profileId: string) => boolean
 }) {
-  const router = useRouter()
   const [state, formAction, pending] = useActionState<ServerState, FormData>(updateServer, {
     error: null,
     notice: null,
@@ -44,7 +43,6 @@ export function ServerDialog({
   const peutGerer = server.myRole === 'owner' || server.myRole === 'admin'
 
   useEffect(() => () => { if (apercu) URL.revokeObjectURL(apercu) }, [apercu])
-  useEffect(() => { if (state.notice) router.refresh() }, [state.notice, router])
 
   useEffect(() => {
     if (!open) return
@@ -61,7 +59,6 @@ export function ServerDialog({
       const res = await action()
       setMessage(res)
       if (!res.error) {
-        router.refresh()
         if (fermer) onClose()
       }
     })
@@ -154,7 +151,14 @@ export function ServerDialog({
                 <div className="flex items-center gap-4">
                   <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-secondary ring-1 ring-border">
                     {iconeAffichee ? (
-                      <Image src={iconeAffichee} alt="" fill sizes="64px" className="object-cover" unoptimized />
+                      <Image
+                        src={iconeAffichee}
+                        alt=""
+                        fill
+                        sizes="64px"
+                        className="object-cover"
+                        unoptimized={imageNonOptimisable(iconeAffichee)}
+                      />
                     ) : (
                       <span className="flex h-full w-full items-center justify-center font-heading text-xl font-bold text-muted-foreground">
                         {server.name.charAt(0).toUpperCase()}

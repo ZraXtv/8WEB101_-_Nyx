@@ -16,22 +16,15 @@ const headingFont = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: 'Nyx — Messagerie de la communauté',
-  description: 'Espace de discussion de la communauté Funnelra : serveurs, amis et fil d’actualité.',
-  generator: 'v0.app',
+  description:
+    'Messagerie communautaire : serveurs et salons, amis, messages privés et suivi sportif.',
+  // Les quatre icônes déclarées ici renvoyaient toutes un 404 : aucune n'était
+  // présente dans public/. Le carré sombre frappé d'un N les remplace, en SVG
+  // pour les navigateurs récents et en PNG pour le reste.
   icons: {
     icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/icon-32x32.png', sizes: '32x32', type: 'image/png' },
     ],
     apple: '/apple-icon.png',
   },

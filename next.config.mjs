@@ -14,7 +14,9 @@ const nextConfig = {
   agentRules: false,
 
   images: {
-    unoptimized: true,
+    // L'optimiseur est actif : il sert une vignette de quelques kilo-octets à
+    // la place d'une photo de profil qui peut peser 2 Mo. Les sources qui ne
+    // peuvent pas y passer sont marquées une par une (voir imageNonOptimisable).
     remotePatterns: supabaseHost
       ? [{ protocol: 'https', hostname: supabaseHost, pathname: '/storage/v1/object/public/**' }]
       : [],

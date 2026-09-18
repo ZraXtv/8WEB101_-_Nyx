@@ -1,12 +1,12 @@
 import Image from 'next/image'
-import { cn } from '@/lib/utils'
+import { cn, imageNonOptimisable } from '@/lib/utils'
 
 /**
  * Photo de profil, avec repli sur l'initiale quand aucune image n'est définie.
  *
- * `unoptimized` : les photos sont servies depuis Supabase Storage et déjà
- * limitées à 2 Mo ; les faire transiter par l'optimiseur d'images de Next
- * n'apporterait rien et imposerait de déclarer le domaine.
+ * Les photos viennent de Supabase Storage et peuvent peser 2 Mo, pour un
+ * rendu de 36 px : elles passent donc par l'optimiseur de Next, qui en sert
+ * une vignette. Le domaine est déclaré dans next.config.mjs.
  */
 export function Avatar({
   src,
@@ -35,7 +35,7 @@ export function Avatar({
           fill
           sizes={`${size}px`}
           className="object-cover"
-          unoptimized
+          unoptimized={imageNonOptimisable(src)}
         />
       ) : (
         <span

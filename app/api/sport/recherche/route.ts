@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { idUtilisateur } from '@/lib/supabase/auth'
 import { chercherEquipes, ErreurFournisseur } from '@/lib/sport/fournisseur'
 
 /**
@@ -15,11 +16,9 @@ import { chercherEquipes, ErreurFournisseur } from '@/lib/sport/fournisseur'
  */
 export async function GET(request: Request) {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const userId = await idUtilisateur(supabase)
 
-  if (!user) {
+  if (!userId) {
     return NextResponse.json({ error: 'Connexion requise.' }, { status: 401 })
   }
 

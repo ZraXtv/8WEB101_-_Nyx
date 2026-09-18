@@ -3,9 +3,8 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { ArrowLeft, Hash, LogIn, LogOut, Menu, Plus, Settings, Trophy, Users, X } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, imageNonOptimisable } from '@/lib/utils'
 import { logout } from '@/app/auth/actions'
 import { createChannel, createServer, type ActionState } from '@/app/chat/actions'
 import { useActionState } from 'react'
@@ -206,13 +205,28 @@ export function SidebarPanel({
                     item.id === selectedServerId ? 'bg-primary/15' : 'hover:bg-secondary',
                   )}
                 >
-                  <span className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full ring-1 ring-border">
-                    <Image
-                      src={item.icon_url || '/placeholder-logo.svg'}
-                      alt=""
-                      fill
-                      className="object-cover"
-                    />
+                  <span className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-secondary ring-1 ring-border">
+                    {item.icon_url ? (
+                      <Image
+                        src={item.icon_url}
+                        alt=""
+                        fill
+                        sizes="36px"
+                        className="object-cover"
+                        unoptimized={imageNonOptimisable(item.icon_url)}
+                      />
+                    ) : (
+                      // Repli sur l'initiale, comme pour les photos de profil.
+                      // Le fichier /placeholder-logo.svg qui servait ici
+                      // n'existait pas : chaque serveur sans icône déclenchait
+                      // une requête en 404 et affichait une image cassée.
+                      <span
+                        aria-hidden="true"
+                        className="flex h-full w-full items-center justify-center font-heading text-sm font-bold text-muted-foreground"
+                      >
+                        {item.name.charAt(0).toUpperCase()}
+                      </span>
+                    )}
                   </span>
                   <span
                     className={cn(
@@ -467,14 +481,11 @@ function JoinForm({ onDone }: { onDone: () => void }) {
     notice: null,
   })
 
-  const router = useRouter()
-
   // Le serveur rejoint n'apparaît qu'après un nouveau rendu serveur.
   useEffect(() => {
     if (!state.notice) return
-    router.refresh()
     onDone()
-  }, [state.notice, onDone, router])
+  }, [state.notice, onDone])
 
   return (
     <form action={formAction} className="mt-1 px-3">

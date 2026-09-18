@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { idUtilisateur } from '@/lib/supabase/auth'
 import { ErreurFournisseur, lireEquipe } from '@/lib/sport/fournisseur'
 
 export type SportState = { error: string | null; teamId: string | null }
@@ -20,11 +21,9 @@ export async function suivreEquipeTrouvee(providerId: string): Promise<SportStat
   }
 
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const userId = await idUtilisateur(supabase)
 
-  if (!user) return { error: 'Connexion requise.', teamId: null }
+  if (!userId) return { error: 'Connexion requise.', teamId: null }
 
   let equipe
   try {
@@ -59,7 +58,7 @@ export async function suivreEquipeTrouvee(providerId: string): Promise<SportStat
   const { error: erreurSuivi } = await supabase
     .from('team_follows')
     .upsert(
-      { profile_id: user.id, team_id: teamId },
+      { profile_id: userId, team_id: teamId },
       { onConflict: 'profile_id,team_id', ignoreDuplicates: true },
     )
 

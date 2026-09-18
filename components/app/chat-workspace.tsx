@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
 import { useConversation } from '@/lib/use-conversation'
 import { usePresence } from '@/lib/use-presence'
 import { useGame } from '@/lib/use-game'
@@ -40,8 +39,6 @@ export function ChatWorkspace({
 
   const [erreurOuverture, setErreurOuverture] = useState<string | null>(null)
   const [ouverture, startOuverture] = useTransition()
-  const router = useRouter()
-
   // Une conversation tout juste créée n'est pas encore dans les props : le
   // rendu serveur n'a pas été rejoué. On la garde localement pour pouvoir
   // l'afficher immédiatement, sans attendre le rafraîchissement.
@@ -166,10 +163,9 @@ export function ChatWorkspace({
         }
 
         setSource({ kind: 'dm', id: res.conversationId })
-        router.refresh()
       })
     },
-    [friends, router],
+    [friends],
   )
 
   const titre = channel ? channel.name : conversation?.other.display_name ?? ''

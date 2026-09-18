@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
-import { useRouter } from 'next/navigation'
+import { imageNonOptimisable } from '@/lib/utils'
 import { AlertCircle, CheckCircle2, Loader2, Trash2, Upload, X } from 'lucide-react'
 import { updateProfile, type ProfileState } from '@/app/chat/profile-actions'
 import type { Profile } from '@/lib/database.types'
@@ -19,7 +19,6 @@ export function ProfileDialog({
   open: boolean
   onClose: () => void
 }) {
-  const router = useRouter()
   const [state, formAction, pending] = useActionState<ProfileState, FormData>(updateProfile, {
     error: null,
     notice: null,
@@ -33,11 +32,6 @@ export function ProfileDialog({
 
   // L'aperçu est un blob local : il faut le libérer pour ne pas fuir de mémoire.
   useEffect(() => () => { if (apercu) URL.revokeObjectURL(apercu) }, [apercu])
-
-  // Après un enregistrement réussi, recharger les données rendues côté serveur.
-  useEffect(() => {
-    if (state.notice) router.refresh()
-  }, [state.notice, router])
 
   useEffect(() => {
     if (!open) return
@@ -114,7 +108,7 @@ export function ProfileDialog({
                   fill
                   sizes="80px"
                   className="object-cover"
-                  unoptimized
+                  unoptimized={imageNonOptimisable(imageAffichee)}
                 />
               ) : (
                 <span className="flex h-full w-full items-center justify-center font-heading text-2xl font-bold text-muted-foreground">

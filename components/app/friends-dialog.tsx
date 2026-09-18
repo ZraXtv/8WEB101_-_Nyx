@@ -1,7 +1,6 @@
 'use client'
 
 import { useActionState, useEffect, useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
 import { AlertCircle, Check, CheckCircle2, Loader2, MessageSquare, UserPlus, X } from 'lucide-react'
 import {
   acceptFriendRequest,
@@ -25,17 +24,12 @@ export function FriendsDialog({
   onOpenConversation: (profileId: string) => void
   estEnLigne: (profileId: string) => boolean
 }) {
-  const router = useRouter()
   const [state, formAction, pending] = useActionState<FriendState, FormData>(sendFriendRequest, {
     error: null,
     notice: null,
   })
   const [enCours, startTransition] = useTransition()
   const [erreurAction, setErreurAction] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (state.notice) router.refresh()
-  }, [state.notice, router])
 
   useEffect(() => {
     if (!open) return
@@ -55,7 +49,6 @@ export function FriendsDialog({
     startTransition(async () => {
       const res = await action()
       if (res.error) setErreurAction(res.error)
-      else router.refresh()
     })
   }
 

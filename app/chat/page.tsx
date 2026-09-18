@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { idUtilisateur } from '@/lib/supabase/auth'
 import { ChatWorkspace } from '@/components/app/chat-workspace'
 import type { Author, Conversation, FriendEntry, ServerWithChannels } from '@/lib/types'
 import type { FriendshipStatus, ServerRole } from '@/lib/database.types'
@@ -24,17 +25,15 @@ type ConversationRow = {
 export default async function ChatPage() {
   const supabase = await createClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const userId = await idUtilisateur(supabase)
 
   // Le middleware protège déjà la route ; ce garde-fou couvre le cas où la
   // session expire entre le middleware et le rendu.
-  if (!user) redirect('/login?next=/chat')
+  if (!userId) redirect('/login?next=/chat')
 
   const [{ data: profile }, { data: servers }, { data: friendships }, { data: conversations }] =
     await Promise.all([
-      supabase.from('profiles').select('*').eq('id', user.id).single(),
+      supabase.from('profiles').select('*').eq('id', userId).single(),
       supabase
         .from('servers')
         .select('id, name, icon_url, owner_id, is_public, invite_code,' +
@@ -65,7 +64,7 @@ export default async function ChatPage() {
   // à déterminer, pour chacune, qui est « l'autre » et dans quel sens elle va.
   const friends: FriendEntry[] = ((friendships ?? []) as unknown as FriendshipRow[]).flatMap(
     (row) => {
-      const jeSuisDemandeur = row.requester_id === user.id
+      const jeSuisDemandeur = row.requester_id === userId
       const autre = jeSuisDemandeur ? row.addressee : row.requester
       if (!autre) return []
 
@@ -82,7 +81,7 @@ export default async function ChatPage() {
 
   const dms: Conversation[] = ((conversations ?? []) as unknown as ConversationRow[]).flatMap(
     (row) => {
-      const autre = row.user_low === user.id ? row.high : row.low
+      const autre = row.user_low === userId ? row.high : row.low
       return autre ? [{ id: row.id, other: autre }] : []
     },
   )
@@ -107,7 +106,7 @@ export default async function ChatPage() {
       return {
         ...reste,
         members,
-        myRole: server_members.find((m) => m.profile_id === user.id)?.role ?? 'member',
+        myRole: server_members.find((m) => m.profile_id === userId)?.role ?? 'member',
       }
     },
   )
@@ -118,7 +117,7 @@ export default async function ChatPage() {
       servers={mesServeurs}
       friends={friends}
       conversations={dms}
-      currentUserId={user.id}
+      currentUserId={userId}
     />
   )
 }

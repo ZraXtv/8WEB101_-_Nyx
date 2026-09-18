@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { idUtilisateur } from '@/lib/supabase/auth'
 import {
   validateBio,
   validateDisplayName,
@@ -39,11 +40,9 @@ export async function updateProfile(
 ): Promise<ProfileState> {
   const supabase = await createClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const userId = await idUtilisateur(supabase)
 
-  if (!user) return { error: 'Session expirée, reconnecte-toi.', notice: null }
+  if (!userId) return { error: 'Session expirée, reconnecte-toi.', notice: null }
 
   const username = String(formData.get('username') ?? '').trim().toLowerCase()
   const displayName = String(formData.get('display_name') ?? '').trim()
@@ -58,7 +57,7 @@ export async function updateProfile(
   const { data: actuel } = await supabase
     .from('profiles')
     .select('avatar_url')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single()
 
   const ancienChemin = cheminDepuisUrl(actuel?.avatar_url ?? null)
@@ -73,7 +72,7 @@ export async function updateProfile(
     }
 
     // Nom unique : le navigateur garde en cache l'ancienne URL sinon.
-    const chemin = `${user.id}/${crypto.randomUUID()}.${EXTENSIONS[avatar.type]}`
+    const chemin = `${userId}/${crypto.randomUUID()}.${EXTENSIONS[avatar.type]}`
 
     const { error: erreurUpload } = await supabase.storage
       .from('avatars')
@@ -96,7 +95,7 @@ export async function updateProfile(
       bio: bio || null,
       ...(avatarUrl !== undefined ? { avatar_url: avatarUrl } : {}),
     })
-    .eq('id', user.id)
+    .eq('id', userId)
 
   if (error) {
     if (error.code === '23505') {
