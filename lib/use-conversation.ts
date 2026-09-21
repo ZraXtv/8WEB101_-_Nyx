@@ -12,13 +12,8 @@ const FRAPPE_EXPIRATION_MS = 4000
 /** On ne prévient les autres qu'une fois par intervalle, pas à chaque touche. */
 const FRAPPE_INTERVALLE_MS = 2000
 
-// Requête pour les salons (avec colonnes invités)
-const SELECT_CHANNEL =
-  'id, author_id, guest_name, guest_id, content, kind, created_at, edited_at,' +
-  ' author:profiles(id, username, display_name, avatar_url)'
-
-// Requête pour les messages privés (sans colonnes invités)
-const SELECT_DM =
+// Requête standard pour les messages
+const SELECT =
   'id, author_id, content, kind, created_at, edited_at,' +
   ' author:profiles(id, username, display_name, avatar_url)'
 
@@ -78,8 +73,8 @@ export function useConversation({
 
     const requete =
       kind === 'channel'
-        ? supabase.from('messages').select(SELECT_CHANNEL).eq('channel_id', id)
-        : supabase.from('direct_messages').select(SELECT_DM).eq('conversation_id', id)
+        ? supabase.from('messages').select(SELECT).eq('channel_id', id)
+        : supabase.from('direct_messages').select(SELECT).eq('conversation_id', id)
 
     requete
       .order('created_at', { ascending: false })
@@ -91,21 +86,10 @@ export function useConversation({
           console.error('Erreur chargement messages:', erreur)
           setError('Impossible de charger les messages.')
         } else {
-          const rows = (data ?? []) as unknown as (ChatMessage & {
-            guest_name?: string | null
-            guest_id?: string | null
-          })[]
-
+          const rows = (data ?? []) as unknown as ChatMessage[]
           for (const row of rows) {
             if (row.author) {
               authorCache.current?.set(row.author.id, row.author)
-            } else if (row.guest_name) {
-              row.author = {
-                id: row.guest_id ?? 'guest',
-                username: row.guest_name,
-                display_name: row.guest_name,
-                avatar_url: null,
-              } as unknown as Author
             }
           }
           setMessages(rows.slice().reverse())
@@ -150,10 +134,7 @@ export function useConversation({
             return
           }
 
-          const row = payload.new as Omit<ChatMessage, 'author'> & {
-            guest_name?: string | null
-            guest_id?: string | null
-          }
+          const row = payload.new as Omit<ChatMessage, 'author'>
 
           let author = row.author_id ? (authorCache.current?.get(row.author_id) ?? null) : null
 
@@ -167,13 +148,6 @@ export function useConversation({
               author = data
               authorCache.current?.set(data.id, data)
             }
-          } else if (!author && row.guest_name) {
-            author = {
-              id: row.guest_id ?? 'guest',
-              username: row.guest_name,
-              display_name: row.guest_name,
-              avatar_url: null,
-            } as unknown as Author
           }
 
           setMessages((prev) => {
@@ -182,8 +156,7 @@ export function useConversation({
             const provisoire = prev.findIndex(
               (m) =>
                 m.pending &&
-                ((arrivant.author_id && m.author_id === arrivant.author_id) ||
-                  (!arrivant.author_id && !m.author_id)) &&
+                m.author_id === arrivant.author_id &&
                 m.content === arrivant.content,
             )
             if (provisoire !== -1) {
@@ -274,9 +247,7 @@ export function useConversation({
 
   // ── Marquer comme lu ─────────────────────────────────────────────────────
   const marquerLu = useCallback(async () => {
-    if (!kind || !id) return
-    // Ne rien marquer pour les invités
-    if (!currentUserId || currentUserId === 'guest-user') return
+    if (!kind || !id || !currentUserId) return
     if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return
 
     const maintenant = new Date().toISOString()
@@ -311,58 +282,26 @@ export function useConversation({
   // ── Envoi ────────────────────────────────────────────────────────────────
   const send = useCallback(
     async (content: string) => {
-      if (!kind || !id) return
-
-      const isGuest = !currentUserId || currentUserId === 'guest-user'
-
-      let guestId: string | null = null
-      let guestName: string | null = null
-      if (isGuest && typeof window !== 'undefined') {
-        guestId = localStorage.getItem('guest_id')
-        if (!guestId) {
-          guestId = `guest_${crypto.randomUUID().slice(0, 8)}`
-          localStorage.setItem('guest_id', guestId)
-        }
-        guestName = me?.display_name ?? 'Invité'
-      }
+      if (!kind || !id || !currentUserId) return
 
       const tempId = `temp-${crypto.randomUUID()}`
       const optimiste: ChatMessage = {
         id: tempId,
-        author_id: isGuest ? null : currentUserId,
+        author_id: currentUserId,
         content,
         kind: 'user',
         created_at: new Date().toISOString(),
         edited_at: null,
-        author: isGuest
-          ? ({
-              id: guestId ?? 'guest',
-              username: guestName ?? 'Invité',
-              display_name: guestName ?? 'Invité',
-              avatar_url: null,
-            } as unknown as Author)
-          : (authorCache.current?.get(currentUserId) ?? null),
+        author: authorCache.current?.get(currentUserId) ?? me ?? null,
         pending: true,
       }
       setMessages((prev) => [...prev, optimiste])
 
-      const payload = isGuest
-        ? {
-            channel_id: id,
-            author_id: null,
-            content,
-            guest_id: guestId,
-            guest_name: guestName,
-          }
-        : {
-            channel_id: id,
-            author_id: currentUserId,
-            content,
-          }
-
       const { error: erreur } =
         kind === 'channel'
-          ? await supabase.from('messages').insert(payload as any)
+          ? await supabase
+              .from('messages')
+              .insert({ channel_id: id, author_id: currentUserId, content })
           : await supabase
               .from('direct_messages')
               .insert({ conversation_id: id, author_id: currentUserId, content })

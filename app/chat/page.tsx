@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { idUtilisateur } from '@/lib/supabase/auth'
 import { ChatWorkspace } from '@/components/app/chat-workspace'
@@ -23,28 +24,27 @@ type ConversationRow = {
 
 export default async function ChatPage() {
   const supabase = await createClient()
-
   const userId = await idUtilisateur(supabase)
 
-  // Fetch servers (available to all or authenticated users depending on RLS)
-  const serversPromise = supabase
-    .from('servers')
-    .select(
-      'id, name, icon_url, owner_id, is_public, invite_code,' +
-        ' channels(id, server_id, name, topic, position),' +
-        ' server_members(profile_id, role, nickname,' +
-        '   profile:profiles(id, username, display_name, avatar_url))',
-    )
-    .order('created_at', { ascending: true })
-    .order('position', { referencedTable: 'channels', ascending: true })
+  // Bloque l'accès et renvoie vers la connexion si non connecté
+  if (!userId) {
+    redirect('/login?next=/chat')
+  }
 
-  // Fetch user-specific data only if logged in
-  const profilePromise = userId
-    ? supabase.from('profiles').select('*').eq('id', userId).single()
-    : Promise.resolve({ data: null })
-
-  const friendshipsPromise = userId
-    ? supabase
+  const [{ data: profile }, { data: servers }, { data: friendships }, { data: conversations }] =
+    await Promise.all([
+      supabase.from('profiles').select('*').eq('id', userId).single(),
+      supabase
+        .from('servers')
+        .select(
+          'id, name, icon_url, owner_id, is_public, invite_code,' +
+            ' channels(id, server_id, name, topic, position),' +
+            ' server_members(profile_id, role, nickname,' +
+            '   profile:profiles(id, username, display_name, avatar_url))',
+        )
+        .order('created_at', { ascending: true })
+        .order('position', { referencedTable: 'channels', ascending: true }),
+      supabase
         .from('friendships')
         .select(
           'id, requester_id, addressee_id, status,' +
@@ -52,34 +52,18 @@ export default async function ChatPage() {
             ' addressee:profiles!friendships_addressee_id_fkey(id, username, display_name, avatar_url)',
         )
         .neq('status', 'blocked')
-        .order('created_at', { ascending: false })
-    : Promise.resolve({ data: [] })
-
-  const conversationsPromise = userId
-    ? supabase
+        .order('created_at', { ascending: false }),
+      supabase
         .from('dm_conversations')
         .select(
           'id, user_low, user_high,' +
             ' low:profiles!dm_conversations_user_low_fkey(id, username, display_name, avatar_url),' +
             ' high:profiles!dm_conversations_user_high_fkey(id, username, display_name, avatar_url)',
-        )
-    : Promise.resolve({ data: [] })
-
-  const [
-    { data: profile },
-    { data: servers },
-    { data: friendships },
-    { data: conversations },
-  ] = await Promise.all([
-    profilePromise,
-    serversPromise,
-    friendshipsPromise,
-    conversationsPromise,
-  ])
+        ),
+    ])
 
   const friends: FriendEntry[] = ((friendships ?? []) as unknown as FriendshipRow[]).flatMap(
     (row) => {
-      if (!userId) return []
       const jeSuisDemandeur = row.requester_id === userId
       const autre = jeSuisDemandeur ? row.addressee : row.requester
       if (!autre) return []
@@ -97,7 +81,6 @@ export default async function ChatPage() {
 
   const dms: Conversation[] = ((conversations ?? []) as unknown as ConversationRow[]).flatMap(
     (row) => {
-      if (!userId) return []
       const autre = row.user_low === userId ? row.high : row.low
       return autre ? [{ id: row.id, other: autre }] : []
     },
@@ -123,9 +106,7 @@ export default async function ChatPage() {
       return {
         ...reste,
         members,
-        myRole: userId
-          ? server_members?.find((m) => m.profile_id === userId)?.role ?? 'member'
-          : 'member',
+        myRole: server_members.find((m) => m.profile_id === userId)?.role ?? 'member',
       }
     },
   )
@@ -136,7 +117,7 @@ export default async function ChatPage() {
       servers={mesServeurs}
       friends={friends}
       conversations={dms}
-      currentUserId={userId ?? null}
+      currentUserId={userId}
     />
   )
 }
