@@ -13,7 +13,7 @@ const FRAPPE_EXPIRATION_MS = 4000
 const FRAPPE_INTERVALLE_MS = 2000
 
 const SELECT =
-  'id, author_id, guest_name, guest_id, content, kind, created_at, edited_at,' +
+  'id, author_id, content, kind, created_at, edited_at,' +
   ' author:profiles(id, username, display_name, avatar_url)'
 
 type Params = {
@@ -95,22 +95,9 @@ export function useConversation({
         if (erreur) {
           setError('Impossible de charger les messages.')
         } else {
-          const rows = (data ?? []) as unknown as (ChatMessage & {
-            guest_name?: string | null
-            guest_id?: string | null
-          })[]
-
+          const rows = (data ?? []) as unknown as ChatMessage[]
           for (const row of rows) {
-            if (row.author) {
-              authorCache.current?.set(row.author.id, row.author)
-            } else if (row.guest_name) {
-              row.author = {
-                id: row.guest_id ?? 'guest',
-                username: row.guest_name,
-                display_name: row.guest_name,
-                avatar_url: null,
-              } as unknown as Author
-            }
+            if (row.author) authorCache.current?.set(row.author.id, row.author)
           }
           // Trié du plus récent au plus ancien pour que LIMIT prenne les
           // derniers ; on remet ensuite dans l'ordre de lecture.
@@ -159,10 +146,7 @@ export function useConversation({
             return
           }
 
-          const row = payload.new as Omit<ChatMessage, 'author'> & {
-            guest_name?: string | null
-            guest_id?: string | null
-          }
+          const row = payload.new as Omit<ChatMessage, 'author'>
 
           // Une annonce de l'application n'a pas d'auteur à résoudre.
           let author = row.author_id ? (authorCache.current?.get(row.author_id) ?? null) : null
@@ -177,13 +161,6 @@ export function useConversation({
               author = data
               authorCache.current?.set(data.id, data)
             }
-          } else if (!author && row.guest_name) {
-            author = {
-              id: row.guest_id ?? 'guest',
-              username: row.guest_name,
-              display_name: row.guest_name,
-              avatar_url: null,
-            } as unknown as Author
           }
 
           setMessages((prev) => {
@@ -192,11 +169,7 @@ export function useConversation({
             // Nos propres messages sont déjà affichés en optimiste : on remplace
             // la version provisoire au lieu d'ajouter un doublon.
             const provisoire = prev.findIndex(
-              (m) =>
-                m.pending &&
-                ((arrivant.author_id && m.author_id === arrivant.author_id) ||
-                  (!arrivant.author_id && !m.author_id)) &&
-                m.content === arrivant.content,
+              (m) => m.pending && m.author_id === arrivant.author_id && m.content === arrivant.content,
             )
             if (provisoire !== -1) {
               const suite = prev.slice()
@@ -289,7 +262,6 @@ export function useConversation({
   // ── Marquer comme lu ─────────────────────────────────────────────────────
   const marquerLu = useCallback(async () => {
     if (!kind || !id) return
-    if (!currentUserId || currentUserId === 'guest-user') return
     if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return
 
     const maintenant = new Date().toISOString()
@@ -329,67 +301,34 @@ export function useConversation({
     async (content: string) => {
       if (!kind || !id) return
 
-      const isGuest = !currentUserId || currentUserId === 'guest-user'
-
-      let guestId: string | null = null
-      let guestName: string | null = null
-      if (isGuest && typeof window !== 'undefined') {
-        guestId = localStorage.getItem('guest_id')
-        if (!guestId) {
-          guestId = `guest_${crypto.randomUUID().slice(0, 8)}`
-          localStorage.setItem('guest_id', guestId)
-        }
-        guestName = me?.display_name ?? 'Invité'
-      }
-
       const tempId = `temp-${crypto.randomUUID()}`
       const optimiste: ChatMessage = {
         id: tempId,
-        author_id: isGuest ? null : currentUserId,
+        author_id: currentUserId,
         content,
         kind: 'user',
         created_at: new Date().toISOString(),
         edited_at: null,
-        author: isGuest
-          ? ({
-              id: guestId ?? 'guest',
-              username: guestName ?? 'Invité',
-              display_name: guestName ?? 'Invité',
-              avatar_url: null,
-            } as unknown as Author)
-          : (authorCache.current?.get(currentUserId) ?? null),
+        author: authorCache.current?.get(currentUserId) ?? null,
         pending: true,
       }
       setMessages((prev) => [...prev, optimiste])
 
-      const payload = isGuest
-        ? {
-            channel_id: id,
-            author_id: null,
-            content,
-            guest_id: guestId,
-            guest_name: guestName,
-          }
-        : {
-            channel_id: id,
-            author_id: currentUserId,
-            content,
-          }
-
       const { error: erreur } =
         kind === 'channel'
-          ? await supabase.from('messages').insert(payload as any)
+          ? await supabase
+              .from('messages')
+              .insert({ channel_id: id, author_id: currentUserId, content })
           : await supabase
               .from('direct_messages')
               .insert({ conversation_id: id, author_id: currentUserId, content })
 
       if (erreur) {
-        console.error('Erreur Supabase insert message:', erreur)
         setMessages((prev) => prev.filter((m) => m.id !== tempId))
         setError("Le message n'a pas pu être envoyé.")
       }
     },
-    [kind, id, currentUserId, me, supabase, authorCache],
+    [kind, id, currentUserId, supabase, authorCache],
   )
 
   /**
