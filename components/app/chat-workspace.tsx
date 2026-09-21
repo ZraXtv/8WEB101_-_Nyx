@@ -23,7 +23,7 @@ type Props = {
   servers: ServerWithChannels[]
   friends: FriendEntry[]
   conversations: Conversation[]
-  currentUserId?: string | null
+  currentUserId: string
 }
 
 export function ChatWorkspace({
@@ -31,12 +31,8 @@ export function ChatWorkspace({
   servers = [],
   friends = [],
   conversations = [],
-  currentUserId = null,
+  currentUserId,
 }: Props) {
-  // Profil invité si l'utilisateur n'est pas connecté
-  const effectiveUserId = currentUserId ?? 'guest-user'
-  const isGuest = !currentUserId
-
   const [serverId, setServerId] = useState<string | null>(null)
   const server = servers.find((s) => s.id === serverId) ?? null
 
@@ -76,20 +72,20 @@ export function ChatWorkspace({
   const { messages, loading, error, send, refreshAuthor, otherReadAt, typingNames, notifyTyping } =
     useConversation({
       source,
-      currentUserId: effectiveUserId,
+      currentUserId,
       authorCache,
       me: profile,
       otherParticipantIds,
     })
 
-  const { presence, estEnLigne, battre } = usePresence(effectiveUserId)
+  const { presence, estEnLigne, battre } = usePresence(currentUserId)
   const { game, refresh: refreshGame } = useGame(source)
   const [jeuOuvert, setJeuOuvert] = useState(false)
 
   const nomDe = useCallback(
     (profileId: string | null) => {
-      if (!profileId) return 'Visiteur'
-      if (profileId === effectiveUserId) return profile?.display_name ?? 'Invité'
+      if (!profileId) return 'Utilisateur'
+      if (profileId === currentUserId) return profile?.display_name ?? 'Moi'
 
       const enCache = authorCache.current.get(profileId)
       if (enCache) return enCache.display_name
@@ -99,13 +95,13 @@ export function ChatWorkspace({
         .find((m) => m.profileId === profileId)
       if (membre) return membre.nickname ?? membre.profile.display_name
 
-      return conversations.find((c) => c.other.id === profileId)?.other.display_name ?? 'Invité'
+      return conversations.find((c) => c.other.id === profileId)?.other.display_name ?? 'Utilisateur'
     },
-    [effectiveUserId, profile, servers, conversations],
+    [currentUserId, profile, servers, conversations],
   )
 
   const dernier = messages[messages.length - 1]
-  const dernierRecuId = dernier && dernier.author_id !== effectiveUserId ? dernier.id : null
+  const dernierRecuId = dernier && dernier.author_id !== currentUserId ? dernier.id : null
   useEffect(() => {
     if (dernierRecuId) void battre()
   }, [dernierRecuId, battre])
@@ -146,10 +142,6 @@ export function ChatWorkspace({
 
   const ouvrirConversationAvec = useCallback(
     (profileId: string) => {
-      if (isGuest) {
-        setErreurOuverture('Connectez-vous pour envoyer des messages privés.')
-        return
-      }
       setErreurOuverture(null)
       startOuverture(async () => {
         const res = await openConversation(profileId)
@@ -170,7 +162,7 @@ export function ChatWorkspace({
         setSource({ kind: 'dm', id: res.conversationId })
       })
     },
-    [friends, isGuest],
+    [friends],
   )
 
   // Titres adaptés selon la vue
@@ -181,7 +173,7 @@ export function ChatWorkspace({
       : conversation?.other.display_name ?? ''
 
   const sousTitre = isLobby
-    ? 'Discussion libre ouverte à tous les visiteurs'
+    ? 'Discussion libre'
     : channel
       ? servers.find((s) => s.channels.some((c) => c.id === channel.id))?.name ?? ''
       : conversation
@@ -199,7 +191,7 @@ export function ChatWorkspace({
             sousTitre={sousTitre}
             prefixe={isLobby || channel ? '#' : ''}
             messages={messages}
-            currentUserId={effectiveUserId}
+            currentUserId={currentUserId}
             loading={loading || ouverture}
             error={error ?? erreurOuverture}
             otherReadAt={otherReadAt}
@@ -227,7 +219,7 @@ export function ChatWorkspace({
 
       <SidebarPanel
         profile={profile}
-        currentUserId={effectiveUserId}
+        currentUserId={currentUserId}
         servers={servers}
         friends={friends}
         conversations={toutesConversations}
@@ -236,6 +228,7 @@ export function ChatWorkspace({
         onSelectServer={selectServer}
         onSelectChannel={selectChannel}
         onSelectConversation={selectConversation}
+        onOpenConversationWith={ouvrirConversationAvec}
         onSelectLobby={selectLobby}
         estEnLigne={estEnLigne}
       />
@@ -244,7 +237,7 @@ export function ChatWorkspace({
         <GameDialog
           game={game}
           source={source}
-          currentUserId={effectiveUserId}
+          currentUserId={currentUserId}
           nomDe={nomDe}
           open={jeuOuvert}
           onClose={() => setJeuOuvert(false)}

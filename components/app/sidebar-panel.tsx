@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, Hash, LogIn, LogOut, Menu, Plus, Settings, Trophy, Users, X } from 'lucide-react'
+import { ArrowLeft, Hash, LogIn, LogOut, Menu, MessageSquare, Plus, Settings, Trophy, Users, X } from 'lucide-react'
 import { cn, imageNonOptimisable } from '@/lib/utils'
 import { logout } from '@/app/auth/actions'
 import { createChannel, createServer, type ActionState } from '@/app/chat/actions'
@@ -29,6 +29,7 @@ type Props = {
   onSelectChannel: (id: string) => void
   onSelectConversation: (id: string) => void
   onOpenConversationWith: (profileId: string) => void
+  onSelectLobby: () => void
   estEnLigne: (profileId: string) => boolean
 }
 
@@ -44,6 +45,7 @@ export function SidebarPanel({
   onSelectChannel,
   onSelectConversation,
   onOpenConversationWith,
+  onSelectLobby,
   estEnLigne,
 }: Props) {
   const [open, setOpen] = useState(false)
@@ -55,7 +57,8 @@ export function SidebarPanel({
   const [sportOuvert, setSportOuvert] = useState(false)
 
   const demandesRecues = friends.filter((f) => f.kind === 'incoming').length
-  const selectedChannelId = source?.kind === 'channel' ? source.id : null
+  const isLobby = source?.id === '00000000-0000-0000-0000-000000000099'
+  const selectedChannelId = source?.kind === 'channel' && !isLobby ? source.id : null
   const selectedConversationId = source?.kind === 'dm' ? source.id : null
 
   const server = servers.find((s) => s.id === selectedServerId) ?? null
@@ -103,11 +106,30 @@ export function SidebarPanel({
         </div>
 
         <div className="mt-5 flex min-h-0 flex-1 flex-col overflow-y-auto px-3">
+          {/* Lobby Public */}
+          <button
+            type="button"
+            onClick={() => {
+              onSelectLobby()
+              setOpen(false)
+            }}
+            aria-current={isLobby}
+            className={cn(
+              'flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-colors',
+              isLobby
+                ? 'bg-primary/15 text-primary'
+                : 'text-foreground/90 hover:bg-secondary',
+            )}
+          >
+            <MessageSquare className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className="flex-1">Lobby Public</span>
+          </button>
+
           {/* Amis */}
           <button
             type="button"
             onClick={() => setAmisOuvert(true)}
-            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-foreground/90 transition-colors hover:bg-secondary"
+            className="mt-0.5 flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-foreground/90 transition-colors hover:bg-secondary"
           >
             <Users className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span className="flex-1">Amis</span>
@@ -125,7 +147,7 @@ export function SidebarPanel({
           <button
             type="button"
             onClick={() => setSportOuvert(true)}
-            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-foreground/90 transition-colors hover:bg-secondary"
+            className="mt-0.5 flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-foreground/90 transition-colors hover:bg-secondary"
           >
             <Trophy className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span className="flex-1">Sport</span>
@@ -216,10 +238,6 @@ export function SidebarPanel({
                         unoptimized={imageNonOptimisable(item.icon_url)}
                       />
                     ) : (
-                      // Repli sur l'initiale, comme pour les photos de profil.
-                      // Le fichier /placeholder-logo.svg qui servait ici
-                      // n'existait pas : chaque serveur sans icône déclenchait
-                      // une requête en 404 et affichait une image cassée.
                       <span
                         aria-hidden="true"
                         className="flex h-full w-full items-center justify-center font-heading text-sm font-bold text-muted-foreground"
@@ -413,7 +431,6 @@ function SectionTitle({
   label: string
   onAdd: () => void
   addLabel: string
-  /** Bouton supplémentaire affiché à côté du « + ». */
   extra?: React.ReactNode
 }) {
   return (
@@ -474,14 +491,12 @@ function CreateForm({
   )
 }
 
-/** Saisie du code d'invitation reçu d'un ami. */
 function JoinForm({ onDone }: { onDone: () => void }) {
   const [state, formAction, pending] = useActionState<ServerState, FormData>(joinServer, {
     error: null,
     notice: null,
   })
 
-  // Le serveur rejoint n'apparaît qu'après un nouveau rendu serveur.
   useEffect(() => {
     if (!state.notice) return
     onDone()
