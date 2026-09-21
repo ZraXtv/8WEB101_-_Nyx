@@ -12,7 +12,13 @@ const FRAPPE_EXPIRATION_MS = 4000
 /** On ne prévient les autres qu'une fois par intervalle, pas à chaque touche. */
 const FRAPPE_INTERVALLE_MS = 2000
 
-const SELECT =
+// Requête pour les salons (avec colonnes invités)
+const SELECT_CHANNEL =
+  'id, author_id, guest_name, guest_id, content, kind, created_at, edited_at,' +
+  ' author:profiles(id, username, display_name, avatar_url)'
+
+// Requête pour les messages privés (sans colonnes invités)
+const SELECT_DM =
   'id, author_id, content, kind, created_at, edited_at,' +
   ' author:profiles(id, username, display_name, avatar_url)'
 
@@ -33,10 +39,6 @@ type Params = {
 /**
  * Charge l'historique d'un fil, s'abonne au temps réel, expose l'envoi,
  * les accusés de lecture et l'indicateur de frappe.
- *
- * Salons de serveur et messages privés vivent dans deux tables distinctes mais
- * se comportent à l'identique : une seule implémentation pour les deux évite
- * que les corrections faites d'un côté manquent de l'autre.
  */
 export function useConversation({
   source,
@@ -50,11 +52,6 @@ export function useConversation({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  /**
-   * Date jusqu'à laquelle TOUS les autres participants ont lu, c'est-à-dire le
-   * plus ancien de leurs curseurs. `null` tant que l'un d'eux n'a jamais ouvert
-   * le fil : on ne peut alors rien affirmer.
-   */
   const [otherReadAt, setOtherReadAt] = useState<string | null>(null)
   const [cursors, setCursors] = useState<Record<string, string>>({})
   const [typingNames, setTypingNames] = useState<string[]>([])
@@ -79,12 +76,10 @@ export function useConversation({
     setError(null)
     setCursors({})
 
-    // Branchement explicite plutôt qu'un nom de table calculé : c'est ce qui
-    // permet à TypeScript de vérifier que la colonne de filtrage existe.
     const requete =
       kind === 'channel'
-        ? supabase.from('messages').select(SELECT).eq('channel_id', id)
-        : supabase.from('direct_messages').select(SELECT).eq('conversation_id', id)
+        ? supabase.from('messages').select(SELECT_CHANNEL).eq('channel_id', id)
+        : supabase.from('direct_messages').select(SELECT_DM).eq('conversation_id', id)
 
     requete
       .order('created_at', { ascending: false })
@@ -93,21 +88,31 @@ export function useConversation({
         if (annule) return
 
         if (erreur) {
+          console.error('Erreur chargement messages:', erreur)
           setError('Impossible de charger les messages.')
         } else {
-          const rows = (data ?? []) as unknown as ChatMessage[]
+          const rows = (data ?? []) as unknown as (ChatMessage & {
+            guest_name?: string | null
+            guest_id?: string | null
+          })[]
+
           for (const row of rows) {
-            if (row.author) authorCache.current?.set(row.author.id, row.author)
+            if (row.author) {
+              authorCache.current?.set(row.author.id, row.author)
+            } else if (row.guest_name) {
+              row.author = {
+                id: row.guest_id ?? 'guest',
+                username: row.guest_name,
+                display_name: row.guest_name,
+                avatar_url: null,
+              } as unknown as Author
+            }
           }
-          // Trié du plus récent au plus ancien pour que LIMIT prenne les
-          // derniers ; on remet ensuite dans l'ordre de lecture.
           setMessages(rows.slice().reverse())
         }
         setLoading(false)
       })
 
-    // Curseurs de lecture : uniquement pour les messages privés. Les salons
-    // n'affichent pas d'accusé, inutile d'interroger la table ni de s'y abonner.
     if (kind === 'dm') {
       supabase
         .from('dm_reads')
@@ -134,7 +139,6 @@ export function useConversation({
     const column = kind === 'channel' ? 'channel_id' : 'conversation_id'
 
     const abonnement = supabase
-      // `self: false` : inutile de recevoir l'écho de sa propre frappe.
       .channel(`${table}:${id}`, { config: { broadcast: { self: false } } })
       .on(
         'postgres_changes',
@@ -146,9 +150,11 @@ export function useConversation({
             return
           }
 
-          const row = payload.new as Omit<ChatMessage, 'author'>
+          const row = payload.new as Omit<ChatMessage, 'author'> & {
+            guest_name?: string | null
+            guest_id?: string | null
+          }
 
-          // Une annonce de l'application n'a pas d'auteur à résoudre.
           let author = row.author_id ? (authorCache.current?.get(row.author_id) ?? null) : null
 
           if (!author && row.author_id) {
@@ -161,15 +167,24 @@ export function useConversation({
               author = data
               authorCache.current?.set(data.id, data)
             }
+          } else if (!author && row.guest_name) {
+            author = {
+              id: row.guest_id ?? 'guest',
+              username: row.guest_name,
+              display_name: row.guest_name,
+              avatar_url: null,
+            } as unknown as Author
           }
 
           setMessages((prev) => {
             const arrivant: ChatMessage = { ...row, author }
 
-            // Nos propres messages sont déjà affichés en optimiste : on remplace
-            // la version provisoire au lieu d'ajouter un doublon.
             const provisoire = prev.findIndex(
-              (m) => m.pending && m.author_id === arrivant.author_id && m.content === arrivant.content,
+              (m) =>
+                m.pending &&
+                ((arrivant.author_id && m.author_id === arrivant.author_id) ||
+                  (!arrivant.author_id && !m.author_id)) &&
+                m.content === arrivant.content,
             )
             if (provisoire !== -1) {
               const suite = prev.slice()
@@ -219,8 +234,7 @@ export function useConversation({
     }
   }, [kind, id, currentUserId, supabase, authorCache])
 
-  // « Lu » = le plus ancien curseur parmi les autres participants. Si l'un
-  // d'eux n'a jamais ouvert le fil, on n'affiche pas d'accusé.
+  // « Lu »
   useEffect(() => {
     if (otherParticipantIds.length === 0) {
       setOtherReadAt(null)
@@ -239,7 +253,6 @@ export function useConversation({
     setOtherReadAt(minimum)
   }, [cursors, otherParticipantIds])
 
-  // Les événements de frappe n'ont pas d'événement « stop » : on les périme.
   useEffect(() => {
     if (typingNames.length === 0) return
 
@@ -262,13 +275,13 @@ export function useConversation({
   // ── Marquer comme lu ─────────────────────────────────────────────────────
   const marquerLu = useCallback(async () => {
     if (!kind || !id) return
+    // Ne rien marquer pour les invités
+    if (!currentUserId || currentUserId === 'guest-user') return
     if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return
 
     const maintenant = new Date().toISOString()
 
     if (kind === 'channel') {
-      // Rien ne l'affiche aujourd'hui : ce curseur est la base d'un futur
-      // indicateur de salons non lus. L'écriture est d'une requête par ouverture.
       await supabase
         .from('channel_reads')
         .upsert(
@@ -285,7 +298,6 @@ export function useConversation({
     }
   }, [kind, id, currentUserId, supabase])
 
-  // À l'ouverture du fil, à chaque nouveau message, et au retour sur l'onglet.
   const dernierMessageId = messages[messages.length - 1]?.id
   useEffect(() => {
     if (!kind || !id) return
@@ -301,42 +313,69 @@ export function useConversation({
     async (content: string) => {
       if (!kind || !id) return
 
+      const isGuest = !currentUserId || currentUserId === 'guest-user'
+
+      let guestId: string | null = null
+      let guestName: string | null = null
+      if (isGuest && typeof window !== 'undefined') {
+        guestId = localStorage.getItem('guest_id')
+        if (!guestId) {
+          guestId = `guest_${crypto.randomUUID().slice(0, 8)}`
+          localStorage.setItem('guest_id', guestId)
+        }
+        guestName = me?.display_name ?? 'Invité'
+      }
+
       const tempId = `temp-${crypto.randomUUID()}`
       const optimiste: ChatMessage = {
         id: tempId,
-        author_id: currentUserId,
+        author_id: isGuest ? null : currentUserId,
         content,
         kind: 'user',
         created_at: new Date().toISOString(),
         edited_at: null,
-        author: authorCache.current?.get(currentUserId) ?? null,
+        author: isGuest
+          ? ({
+              id: guestId ?? 'guest',
+              username: guestName ?? 'Invité',
+              display_name: guestName ?? 'Invité',
+              avatar_url: null,
+            } as unknown as Author)
+          : (authorCache.current?.get(currentUserId) ?? null),
         pending: true,
       }
       setMessages((prev) => [...prev, optimiste])
 
+      const payload = isGuest
+        ? {
+            channel_id: id,
+            author_id: null,
+            content,
+            guest_id: guestId,
+            guest_name: guestName,
+          }
+        : {
+            channel_id: id,
+            author_id: currentUserId,
+            content,
+          }
+
       const { error: erreur } =
         kind === 'channel'
-          ? await supabase
-              .from('messages')
-              .insert({ channel_id: id, author_id: currentUserId, content })
+          ? await supabase.from('messages').insert(payload as any)
           : await supabase
               .from('direct_messages')
               .insert({ conversation_id: id, author_id: currentUserId, content })
 
       if (erreur) {
+        console.error('Erreur Supabase insert message:', erreur)
         setMessages((prev) => prev.filter((m) => m.id !== tempId))
         setError("Le message n'a pas pu être envoyé.")
       }
     },
-    [kind, id, currentUserId, supabase, authorCache],
+    [kind, id, currentUserId, me, supabase, authorCache],
   )
 
-  /**
-   * Signale que l'utilisateur est en train d'écrire.
-   *
-   * Diffusé par le canal temps réel, sans passer par la base : l'information
-   * ne vaut que quelques secondes et n'a aucune raison d'être conservée.
-   */
   const notifyTyping = useCallback(() => {
     const maintenant = Date.now()
     if (!canal.current || !me) return
@@ -350,7 +389,6 @@ export function useConversation({
     })
   }, [currentUserId, me])
 
-  /** Met à jour sur place les messages d'un auteur dont le profil a changé. */
   const refreshAuthor = useCallback((author: Author) => {
     setMessages((prev) => prev.map((m) => (m.author_id === author.id ? { ...m, author } : m)))
   }, [])

@@ -14,34 +14,39 @@ import { MessageComposer } from '@/components/app/message-composer'
 import { StatusWidget } from '@/components/app/status-widget'
 import { EmptyState } from '@/components/app/empty-state'
 
+// UUID fixe du Lobby Public
+const LOBBY_ID = '00000000-0000-0000-0000-000000000099'
+const LOBBY_SOURCE: MessageSource = { kind: 'channel', id: LOBBY_ID }
+
 type Props = {
   profile: Profile | null
   servers: ServerWithChannels[]
   friends: FriendEntry[]
   conversations: Conversation[]
-  currentUserId: string
+  currentUserId?: string | null
 }
 
 export function ChatWorkspace({
   profile,
-  servers,
-  friends,
-  conversations,
-  currentUserId,
+  servers = [],
+  friends = [],
+  conversations = [],
+  currentUserId = null,
 }: Props) {
-  const [serverId, setServerId] = useState<string | null>(servers[0]?.id ?? null)
+  // Profil invité si l'utilisateur n'est pas connecté
+  const effectiveUserId = currentUserId ?? 'guest-user'
+  const isGuest = !currentUserId
+
+  const [serverId, setServerId] = useState<string | null>(null)
   const server = servers.find((s) => s.id === serverId) ?? null
 
-  // Ce qui est affiché dans le fil : un salon de serveur, ou une conversation privée.
-  const [source, setSource] = useState<MessageSource | null>(
-    server?.channels[0] ? { kind: 'channel', id: server.channels[0].id } : null,
-  )
+  // Par défaut : ouvre directement le lobby public
+  const [source, setSource] = useState<MessageSource | null>(LOBBY_SOURCE)
+
+  const isLobby = source?.id === LOBBY_ID
 
   const [erreurOuverture, setErreurOuverture] = useState<string | null>(null)
   const [ouverture, startOuverture] = useTransition()
-  // Une conversation tout juste créée n'est pas encore dans les props : le
-  // rendu serveur n'a pas été rejoué. On la garde localement pour pouvoir
-  // l'afficher immédiatement, sans attendre le rafraîchissement.
   const [nouvelles, setNouvelles] = useState<Conversation[]>([])
 
   const toutesConversations = useMemo(() => {
@@ -50,40 +55,41 @@ export function ChatWorkspace({
     return [...parId.values()]
   }, [conversations, nouvelles])
 
-  // Cache des auteurs : les événements temps réel ne transportent que
-  // author_id, pas le profil joint.
   const authorCache = useRef(new Map<string, Author>())
   if (profile && !authorCache.current.has(profile.id)) {
     authorCache.current.set(profile.id, profile)
   }
 
   const channel =
-    source?.kind === 'channel'
+    source?.kind === 'channel' && !isLobby
       ? servers.flatMap((s) => s.channels).find((c) => c.id === source.id) ?? null
       : null
 
   const conversation =
     source?.kind === 'dm' ? toutesConversations.find((c) => c.id === source.id) ?? null : null
 
-  // Les accusés n'existent que dans les messages privés : le seul participant
-  // à suivre est donc l'interlocuteur. Dans un salon, la liste reste vide.
   const otherParticipantIds = useMemo(
     () => (conversation ? [conversation.other.id] : []),
     [conversation],
   )
 
   const { messages, loading, error, send, refreshAuthor, otherReadAt, typingNames, notifyTyping } =
-    useConversation({ source, currentUserId, authorCache, me: profile, otherParticipantIds })
+    useConversation({
+      source,
+      currentUserId: effectiveUserId,
+      authorCache,
+      me: profile,
+      otherParticipantIds,
+    })
 
-  const { presence, estEnLigne, battre } = usePresence(currentUserId)
+  const { presence, estEnLigne, battre } = usePresence(effectiveUserId)
   const { game, refresh: refreshGame } = useGame(source)
   const [jeuOuvert, setJeuOuvert] = useState(false)
 
-  /** Nom affichable d'un joueur, quel que soit le type de fil. */
   const nomDe = useCallback(
     (profileId: string | null) => {
-      if (!profileId) return 'quelqu’un'
-      if (profileId === currentUserId) return profile?.display_name ?? 'toi'
+      if (!profileId) return 'Visiteur'
+      if (profileId === effectiveUserId) return profile?.display_name ?? 'Invité'
 
       const enCache = authorCache.current.get(profileId)
       if (enCache) return enCache.display_name
@@ -93,25 +99,19 @@ export function ChatWorkspace({
         .find((m) => m.profileId === profileId)
       if (membre) return membre.nickname ?? membre.profile.display_name
 
-      return conversations.find((c) => c.other.id === profileId)?.other.display_name ?? 'l’adversaire'
+      return conversations.find((c) => c.other.id === profileId)?.other.display_name ?? 'Invité'
     },
-    [currentUserId, profile, servers, conversations],
+    [effectiveUserId, profile, servers, conversations],
   )
 
-  // Un message d'autrui vient d'arriver : on l'accuse tout de suite, sans
-  // attendre le battement périodique. C'est littéralement « reçu ».
   const dernier = messages[messages.length - 1]
-  const dernierRecuId = dernier && dernier.author_id !== currentUserId ? dernier.id : null
+  const dernierRecuId = dernier && dernier.author_id !== effectiveUserId ? dernier.id : null
   useEffect(() => {
     if (dernierRecuId) void battre()
   }, [dernierRecuId, battre])
 
-  // « Reçu » = tous les autres participants ont été vus connectés après
-  // l'envoi. Comme pour la lecture, on retient le plus ancien de leurs
-  // passages : si l'un d'eux n'est jamais venu, on n'affirme rien.
   const otherDeliveredAt = useMemo(() => {
     if (otherParticipantIds.length === 0) return null
-
     let minimum: string | null = null
     for (const participant of otherParticipantIds) {
       const vu = presence[participant]
@@ -121,9 +121,6 @@ export function ChatWorkspace({
     return minimum
   }, [presence, otherParticipantIds])
 
-  // Quand l'utilisateur modifie son profil, les messages déjà affichés portent
-  // encore l'ancien nom et l'ancienne photo : ils ont été chargés côté client
-  // et ne sont pas re-rendus par le serveur. On les corrige sur place.
   useEffect(() => {
     if (!profile) return
     authorCache.current.set(profile.id, profile)
@@ -139,12 +136,20 @@ export function ChatWorkspace({
     [servers],
   )
 
+  const selectLobby = useCallback(() => {
+    setServerId(null)
+    setSource(LOBBY_SOURCE)
+  }, [])
+
   const selectChannel = useCallback((id: string) => setSource({ kind: 'channel', id }), [])
   const selectConversation = useCallback((id: string) => setSource({ kind: 'dm', id }), [])
 
-  /** Ouvre (ou crée) la conversation avec un ami, puis l'affiche. */
   const ouvrirConversationAvec = useCallback(
     (profileId: string) => {
+      if (isGuest) {
+        setErreurOuverture('Connectez-vous pour envoyer des messages privés.')
+        return
+      }
       setErreurOuverture(null)
       startOuverture(async () => {
         const res = await openConversation(profileId)
@@ -165,17 +170,25 @@ export function ChatWorkspace({
         setSource({ kind: 'dm', id: res.conversationId })
       })
     },
-    [friends],
+    [friends, isGuest],
   )
 
-  const titre = channel ? channel.name : conversation?.other.display_name ?? ''
-  const sousTitre = channel
-    ? servers.find((s) => s.channels.some((c) => c.id === channel.id))?.name ?? ''
-    : conversation
-      ? `@${conversation.other.username}`
-      : ''
+  // Titres adaptés selon la vue
+  const titre = isLobby
+    ? 'Lobby Public'
+    : channel
+      ? channel.name
+      : conversation?.other.display_name ?? ''
 
-  const aUnFil = Boolean(channel || conversation)
+  const sousTitre = isLobby
+    ? 'Discussion libre ouverte à tous les visiteurs'
+    : channel
+      ? servers.find((s) => s.channels.some((c) => c.id === channel.id))?.name ?? ''
+      : conversation
+        ? `@${conversation.other.username}`
+        : ''
+
+  const aUnFil = Boolean(isLobby || channel || conversation)
 
   return (
     <main className="min-h-screen bg-background">
@@ -184,9 +197,9 @@ export function ChatWorkspace({
           <ChatArea
             titre={titre}
             sousTitre={sousTitre}
-            prefixe={channel ? '#' : ''}
+            prefixe={isLobby || channel ? '#' : ''}
             messages={messages}
-            currentUserId={currentUserId}
+            currentUserId={effectiveUserId}
             loading={loading || ouverture}
             error={error ?? erreurOuverture}
             otherReadAt={otherReadAt}
@@ -195,15 +208,15 @@ export function ChatWorkspace({
             showStatus={Boolean(conversation)}
             widget={
               <StatusWidget
-                serverName={channel ? sousTitre : null}
-                channelCount={server?.channels.length ?? 0}
+                serverName={isLobby ? 'Lobby Public' : channel ? sousTitre : null}
+                channelCount={isLobby ? 1 : server?.channels.length ?? 0}
               />
             }
             onOpenGame={() => setJeuOuvert(true)}
             gameActive={Boolean(game && game.status !== 'finished')}
           />
           <MessageComposer
-            destination={channel ? `#${titre}` : titre}
+            destination={isLobby ? '#Lobby' : channel ? `#${titre}` : titre}
             onSend={send}
             onTyping={notifyTyping}
           />
@@ -214,7 +227,7 @@ export function ChatWorkspace({
 
       <SidebarPanel
         profile={profile}
-        currentUserId={currentUserId}
+        currentUserId={effectiveUserId}
         servers={servers}
         friends={friends}
         conversations={toutesConversations}
@@ -223,7 +236,7 @@ export function ChatWorkspace({
         onSelectServer={selectServer}
         onSelectChannel={selectChannel}
         onSelectConversation={selectConversation}
-        onOpenConversationWith={ouvrirConversationAvec}
+        onSelectLobby={selectLobby}
         estEnLigne={estEnLigne}
       />
 
@@ -231,7 +244,7 @@ export function ChatWorkspace({
         <GameDialog
           game={game}
           source={source}
-          currentUserId={currentUserId}
+          currentUserId={effectiveUserId}
           nomDe={nomDe}
           open={jeuOuvert}
           onClose={() => setJeuOuvert(false)}
