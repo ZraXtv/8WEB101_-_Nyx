@@ -1,0 +1,324 @@
+/* =========================================================================
+   Bureau Windows 7
+   =========================================================================
+
+   Repris du projet WebWin7 de Gábor László (gopher), sous licence MIT :
+   https://github.com/goph-R/WebWin7        (licence dans win7/LICENCE-WebWin7.txt)
+
+   Le style des fenêtres, boutons et onglets vient de 7.css, de Khang Nguyễn,
+   également sous licence MIT : https://khang-nd.github.io/7.css/
+
+   La première partie de ce fichier reprend la feuille du dépôt, mise en forme
+   mais non modifiée dans son fonctionnement. La seconde ajoute ce dont la
+   page d'accueil de Nyx a besoin et que la démonstration d'origine n'avait
+   pas : plusieurs icônes, une barre des tâches, et la mise en page du contenu.
+   ========================================================================= */
+
+/* ============ 1. Reprise du dépôt WebWin7 ============ */
+
+html, body { height: 100%; margin: 0; }
+
+body {
+  height: 100vh;
+  overflow: hidden;
+  background: url('../win7/bg.jpg') center center / cover no-repeat fixed;
+}
+
+/* Couche du bureau */
+.desktop {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* Une fenêtre : en absolu, pour pouvoir la déplacer */
+.window.draggable {
+  position: absolute;
+  left: 80px;
+  top: 80px;
+  width: 400px;
+  max-width: 90vw;
+  user-select: none;   /* éviter de sélectionner du texte en déplaçant */
+  touch-action: none;  /* déplacement plus fluide au doigt */
+
+  /* Barre de titre au-dessus, corps en dessous */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Mais à l'intérieur, le texte reste sélectionnable */
+.window .window-body {
+  user-select: text;
+  touch-action: auto;
+}
+
+/* Le corps prend la place restante et devient la zone défilante */
+.window.draggable .window-body {
+  flex: 1 1 auto;
+  min-height: 0;     /* IMPORTANT : sans ça, le débordement interne ne marche pas */
+  overflow: auto;
+}
+
+.window.draggable .title-bar { flex: 0 0 auto; }
+
+.window .title-bar { cursor: grab; }
+.window.dragging .title-bar { cursor: grabbing; }
+
+/* Réduite : on ne garde que la barre de titre */
+.window.minimized .window-body { display: none; }
+
+/* Fermée */
+.window.closed { display: none !important; }
+
+/* Agrandie : on remplit le bureau */
+.window.maximized {
+  left: 0 !important;
+  top: 0 !important;
+  width: 100vw !important;
+  height: calc(100vh - var(--hauteur-barre)) !important;
+  max-width: 100vw !important;
+}
+
+/* ---- Redimensionnement ---- */
+
+.window.resizable {
+  min-width: 260px;
+  min-height: 140px;
+  max-width: 100vw;
+  max-height: 100vh;
+}
+
+.window.maximized .resize-handle { display: none; }
+
+/* Poignées invisibles */
+.resize-handle {
+  position: absolute;
+  z-index: 10;
+  background: transparent;
+}
+
+.resize-handle.n { top: -4px; left: 8px; right: 8px; height: 8px; cursor: ns-resize; }
+.resize-handle.s { bottom: -4px; left: 8px; right: 8px; height: 8px; cursor: ns-resize; }
+.resize-handle.e { right: -4px; top: 8px; bottom: 8px; width: 8px; cursor: ew-resize; }
+.resize-handle.w { left: -4px; top: 8px; bottom: 8px; width: 8px; cursor: ew-resize; }
+
+.resize-handle.nw { left: -4px; top: -4px; width: 12px; height: 12px; cursor: nwse-resize; }
+.resize-handle.ne { right: -4px; top: -4px; width: 12px; height: 12px; cursor: nesw-resize; }
+.resize-handle.sw { left: -4px; bottom: -4px; width: 12px; height: 12px; cursor: nesw-resize; }
+.resize-handle.se { right: -4px; bottom: -4px; width: 12px; height: 12px; cursor: nwse-resize; }
+
+.window.resizable .window-body { overflow: auto; }
+
+/* ---- Icône du bureau ---- */
+
+.desktop-icon {
+  width: 92px;
+  padding: 8px 6px;
+  border-radius: 4px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .8);
+  cursor: default;
+  user-select: none;
+  outline: none;
+
+  /* 7.css habille tous les <button> : ces icônes sont donc des <div role="button">,
+     comme dans le dépôt d'origine. Ces trois lignes restent par prudence, au cas
+     où quelqu'un les repasserait en <button>. */
+  background: none;
+  border: none;
+  box-shadow: none;
+}
+
+.desktop-icon img {
+  width: 48px;
+  height: 48px;
+  image-rendering: auto;
+  pointer-events: none;
+
+  /* Ombre portée, comme les icônes de bureau de Windows : sans elle, une icône
+     claire disparaît sur la partie claire du fond d'écran. */
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .55));
+}
+
+.desktop-icon .label {
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  line-height: 1.1;
+  text-align: center;
+  padding: 2px 4px;
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+/* Sélection façon Windows */
+.desktop-icon.selected {
+  background: rgba(0, 120, 215, 0.35);
+  outline: 1px solid rgba(160, 210, 255, 0.8);
+}
+
+.desktop-icon.selected .label { background: rgba(0, 120, 215, 0.55); }
+
+.desktop-icon:focus-visible {
+  outline: 1px dotted rgba(255, 255, 255, 0.9);
+  outline-offset: 2px;
+}
+
+.window .title-bar { position: relative; z-index: 20; }
+.window .title-bar-controls { position: relative; z-index: 30; }
+
+/* ============ 2. Ajouts pour Nyx ============ */
+
+:root { --hauteur-barre: 40px; }
+
+/* La démonstration d'origine plaçait son unique icône en absolu. Il en faut
+   plusieurs : une colonne suffit, le style de l'icône ne change pas. */
+.bureau-icones {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 1;
+}
+
+/* ---- Barre des tâches ---- */
+/* Absente du dépôt (« No taskbar (yet) » dans son LISEZMOI) : ajoutée ici,
+   car sans elle une fenêtre réduite ou fermée devient introuvable. */
+
+.barre-taches {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: var(--hauteur-barre);
+  padding-inline: 6px;
+  background: linear-gradient(to bottom,
+    rgba(40, 60, 90, .92), rgba(10, 20, 40, .96));
+  border-top: 1px solid rgba(255, 255, 255, .35);
+  box-shadow: 0 -1px 6px rgba(0, 0, 0, .5);
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+  font-size: 12px;
+  color: #fff;
+}
+
+.demarrer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding-inline: 12px;
+  border-radius: 4px;
+  background: linear-gradient(to bottom, rgba(120, 200, 120, .55), rgba(30, 110, 40, .75));
+  border: 1px solid rgba(255, 255, 255, .45);
+  color: #fff;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .6);
+}
+.demarrer:hover { filter: brightness(1.15); }
+
+.barre-taches__boutons { display: flex; gap: 4px; flex: 1; min-width: 0; }
+
+.tache {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 11rem;
+  height: 30px;
+  padding-inline: 10px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, .1);
+  border: 1px solid rgba(255, 255, 255, .25);
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tache:hover { background: rgba(255, 255, 255, .22); }
+.tache[aria-pressed='true'] {
+  background: rgba(255, 255, 255, .3);
+  border-color: rgba(255, 255, 255, .55);
+}
+.tache img { width: 16px; height: 16px; flex: none; }
+
+.horloge {
+  flex: none;
+  padding-inline: 10px;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .6);
+}
+.horloge small { display: block; font-size: 11px; opacity: .85; }
+
+/* ---- Contenu des fenêtres ---- */
+
+.window-body h3 { margin: 0 0 .25rem; font-size: 13px; }
+.window-body h4 { margin: 1rem 0 .25rem; font-size: 12px; }
+.window-body p  { margin: 0 0 .75rem; line-height: 1.45; }
+.window-body ul { margin: 0 0 .75rem; padding-left: 1.25rem; line-height: 1.5; }
+
+.intro-projet {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: .75rem;
+}
+.intro-projet img { width: 48px; height: 48px; flex: none; }
+
+/* Deux colonnes quand la fenêtre est assez large, une seule sinon. */
+.colonnes {
+  display: grid;
+  gap: 0 16px;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 1rem;
+}
+
+/* Les boutons de 7.css sont des <button> ; nos liens doivent leur ressembler. */
+a.bouton7 {
+  display: inline-block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.note-bas {
+  margin-top: 1rem;
+  padding-top: .5rem;
+  border-top: 1px solid #d8d8d8;
+  font-size: 11px;
+  color: #444;
+}
+
+/* Sur un écran étroit, une fenêtre de 400 px posée à 80/80 déborde.
+   On la ramène dans le cadre et on lui donne toute la largeur utile. */
+@media (max-width: 40rem) {
+  .window.draggable {
+    left: 8px !important;
+    top: 8px !important;
+    width: calc(100vw - 16px) !important;
+    max-width: calc(100vw - 16px);
+  }
+  .bureau-icones {
+    flex-direction: row;
+    flex-wrap: wrap;
+    left: 8px;
+    right: 8px;
+    bottom: calc(var(--hauteur-barre) + 8px);
+    top: auto;
+  }
+  .tache { max-width: 6rem; }
+}

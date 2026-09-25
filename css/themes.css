@@ -1,0 +1,250 @@
+/* =========================================================================
+   Nyx — thèmes
+   =========================================================================
+
+   Un thème n'est qu'un jeu de variables CSS. L'interface, elle, ne change
+   pas : `app.css` ne contient aucune couleur en dur, il ne lit que ces
+   jetons. Ajouter un thème, c'est donc ajouter un bloc ici — pas une ligne
+   de structure.
+
+   Les jetons ne décrivent pas que la couleur. Certains décrivent la FORME
+   (arrondis, flou, ombres), sans quoi un thème Windows 7 ne pourrait jamais
+   ressembler à Windows 7 : ses fenêtres ont des angles nets et aucun flou.
+
+   Le thème s'applique par `data-theme` sur <html>, posé par js/theme.js.
+   ========================================================================= */
+
+/* ============ Jetons communs ============ */
+
+:root {
+  /* Durées : un seul endroit pour ralentir ou couper les transitions. */
+  --duree-courte: .15s;
+  --duree-moyenne: .3s;
+}
+
+/* =========================================================================
+   1. Sombre — le thème d'origine
+   ========================================================================= */
+
+:root,
+[data-theme='sombre'] {
+  color-scheme: dark;
+
+  --fond:            oklch(0.15 0.018 258);
+  --texte:           oklch(0.96 0.006 258);
+  --carte:           oklch(0.21 0.02 258);
+  --primaire:        oklch(0.78 0.13 195);
+  --sur-primaire:    oklch(0.15 0.02 258);
+  --secondaire:      oklch(0.27 0.02 258);
+  --attenue:         oklch(0.24 0.018 258);
+  --texte-attenue:   oklch(0.66 0.02 258);
+  --accent:          oklch(0.75 0.14 70);
+  --danger:          oklch(0.65 0.2 25);
+  --succes:          oklch(0.72 0.15 155);
+  --bordure:         oklch(1 0 0 / 9%);
+  --champ:           oklch(1 0 0 / 14%);
+  --anneau:          oklch(0.78 0.13 195 / 45%);
+
+  --police-texte: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --police-titre: 'Space Grotesk', var(--police-texte);
+
+  --rayon:        .75rem;
+  --rayon-lg:     1.5rem;
+  --rayon-bulle:  1.125rem;
+  --rayon-saisie: 999px;
+
+  --ombre: 0 1px 2px oklch(0 0 0 / 30%), 0 8px 24px oklch(0 0 0 / 25%);
+  --flou: 12px;
+
+  /* Chrome : en-tête, menu, zone de saisie, bulles. */
+  --entete-fond:   color-mix(in oklch, var(--fond) 70%, transparent);
+  --entete-texte:  var(--texte);
+  --menu-fond:     color-mix(in oklch, var(--carte) 85%, transparent);
+  --saisie-fond:   color-mix(in oklch, var(--carte) 85%, transparent);
+  --encart-fond:   color-mix(in oklch, var(--carte) 70%, transparent);
+
+  --bulle-moi-fond:     var(--primaire);
+  --bulle-moi-texte:    var(--sur-primaire);
+  --bulle-autre-fond:   var(--secondaire);
+  --bulle-autre-texte:  var(--texte);
+}
+
+/* =========================================================================
+   2. Clair
+   ========================================================================= */
+
+[data-theme='clair'] {
+  color-scheme: light;
+
+  --fond:            oklch(0.98 0.004 258);
+  --texte:           oklch(0.22 0.02 258);
+  --carte:           oklch(1 0 0);
+  --primaire:        oklch(0.62 0.14 205);
+  --sur-primaire:    oklch(1 0 0);
+  --secondaire:      oklch(0.94 0.008 258);
+  --attenue:         oklch(0.96 0.005 258);
+  --texte-attenue:   oklch(0.52 0.02 258);
+  --accent:          oklch(0.68 0.15 60);
+  --danger:          oklch(0.55 0.21 25);
+  --succes:          oklch(0.58 0.15 155);
+  --bordure:         oklch(0.2 0.02 258 / 12%);
+  --champ:           oklch(0.2 0.02 258 / 18%);
+  --anneau:          oklch(0.62 0.14 205 / 40%);
+
+  --ombre: 0 1px 2px oklch(0 0 0 / 8%), 0 8px 24px oklch(0 0 0 / 10%);
+
+  --entete-fond: color-mix(in oklch, var(--fond) 80%, transparent);
+  --menu-fond:   color-mix(in oklch, var(--carte) 92%, transparent);
+  --saisie-fond: color-mix(in oklch, var(--carte) 92%, transparent);
+  --encart-fond: color-mix(in oklch, var(--carte) 85%, transparent);
+
+  --bulle-autre-fond: oklch(0.93 0.01 258);
+}
+
+/* =========================================================================
+   3. Windows 7
+   =========================================================================
+   Angles nets, surfaces opaques, aucun flou, barre de titre en dégradé
+   bleu, et Segoe UI. Les couleurs reprennent celles d'Aero.
+   ========================================================================= */
+
+[data-theme='win7'] {
+  color-scheme: light;
+
+  /* Intérieur de fenêtre, pas le bleu du bureau : l'application EST la
+     fenêtre, son fond doit donc être clair. Le bleu d'Aero ne sert qu'au
+     dégradé de la barre de titre, plus bas. */
+  --fond:            #eaf1f8;
+  --texte:           #000;
+  --carte:           #f0f0f0;
+  --primaire:        #2c628b;
+  --sur-primaire:    #fff;
+  --secondaire:      #e8eef5;
+  --attenue:         #f4f7fa;
+  --texte-attenue:   #4a5560;
+  --accent:          #d99423;
+  --danger:          #a80000;
+  --succes:          #1a7a1a;
+  --bordure:         #a7b7cc;
+  --champ:           #8e9fb2;
+  --anneau:          #3c7fb1;
+
+  --police-texte: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --police-titre: var(--police-texte);
+
+  /* Windows 7 n'arrondit presque rien, et ne floute jamais un panneau. */
+  --rayon:        3px;
+  --rayon-lg:     4px;
+  --rayon-bulle:  4px;
+  --rayon-saisie: 3px;
+  --flou: 0px;
+
+  --ombre: 0 1px 3px rgba(0, 0, 0, .3), 0 6px 18px rgba(0, 0, 0, .25);
+
+  /* La barre de titre d'Aero : dégradé bleu, texte blanc. */
+  --entete-fond: linear-gradient(to bottom,
+      rgba(185, 214, 241, .95) 0%, rgba(137, 182, 224, .95) 48%,
+      rgba(106, 160, 213, .95) 52%, rgba(146, 191, 230, .95) 100%);
+  --entete-texte: #16314a;
+
+  --menu-fond:   #f0f0f0;
+  --saisie-fond: #f6f8fa;
+  --encart-fond: #f4f7fa;
+
+  /* Deux dégradés légers, bordés : c'est ainsi que Windows 7 détache une
+     surface d'une autre, plutôt que par un aplat de couleur. */
+  --bulle-moi-fond:    linear-gradient(to bottom, #cfe4f7, #a8cdec);
+  --bulle-moi-texte:   #10293f;
+  --bulle-autre-fond:  linear-gradient(to bottom, #fff, #e6ebf0);
+  --bulle-autre-texte: #1a1a1a;
+  --bulle-bordure:     #9db6cd;
+}
+
+/* =========================================================================
+   4. Contraste élevé
+   =========================================================================
+   Pour qui a besoin de contrastes francs. Toutes les paires texte/fond
+   dépassent largement le rapport 7:1 recommandé par le WCAG au niveau AAA.
+   ========================================================================= */
+
+[data-theme='contraste'] {
+  color-scheme: dark;
+
+  --fond:            #000;
+  --texte:           #fff;
+  --carte:           #0c0c0c;
+  --primaire:        #ffe000;
+  --sur-primaire:    #000;
+  --secondaire:      #1c1c1c;
+  --attenue:         #141414;
+  --texte-attenue:   #d8d8d8;
+  --accent:          #00e5ff;
+  --danger:          #ff5b5b;
+  --succes:          #4dff88;
+  --bordure:         #fff;
+  --champ:           #fff;
+  --anneau:          #ffe000;
+
+  --rayon:        .5rem;
+  --rayon-lg:     .75rem;
+  --rayon-bulle:  .5rem;
+  --rayon-saisie: .5rem;
+  --flou: 0px;
+  --ombre: none;
+
+  --entete-fond: #000;
+  --menu-fond:   #000;
+  --saisie-fond: #000;
+  --encart-fond: #000;
+
+  --bulle-moi-fond:    #ffe000;
+  --bulle-moi-texte:   #000;
+  --bulle-autre-fond:  #1c1c1c;
+  --bulle-autre-texte: #fff;
+}
+
+/* =========================================================================
+   5. Terminal
+   =========================================================================
+   Phosphore vert sur fond noir, tout en chasse fixe. Montre surtout que le
+   système de jetons tient : ce thème ne change pas une ligne de structure.
+   ========================================================================= */
+
+[data-theme='terminal'] {
+  color-scheme: dark;
+
+  --fond:            #03170b;
+  --texte:           #4dfb8b;
+  --carte:           #06240f;
+  --primaire:        #37ff7a;
+  --sur-primaire:    #021207;
+  --secondaire:      #0b3218;
+  --attenue:         #082a13;
+  --texte-attenue:   #2f9d5a;
+  --accent:          #c8ff5a;
+  --danger:          #ff6b5a;
+  --succes:          #37ff7a;
+  --bordure:         #175e2c;
+  --champ:           #1d6b36;
+  --anneau:          #37ff7a;
+
+  --police-texte: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
+  --police-titre: var(--police-texte);
+
+  --rayon:        2px;
+  --rayon-lg:     2px;
+  --rayon-bulle:  2px;
+  --rayon-saisie: 2px;
+  --flou: 0px;
+  --ombre: 0 0 12px rgba(55, 255, 122, .18);
+
+  --entete-fond: #06240f;
+  --menu-fond:   #041c0a;
+  --saisie-fond: #06240f;
+  --encart-fond: #06240f;
+
+  --bulle-moi-fond:    #0f4a22;
+  --bulle-moi-texte:   #8dffb5;
+  --bulle-autre-fond:  #0a2e14;
+  --bulle-autre-texte: #4dfb8b;
+}

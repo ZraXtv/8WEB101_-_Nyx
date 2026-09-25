@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connexion — Nyx</title>
+<meta name="theme-color" content="#141924">
+<link rel="icon" href="img/icone.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/polices.css">
+<link rel="stylesheet" href="css/themes.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/auth.css">
+</head>
+<body class="page-auth">
+
+<main class="boite-auth">
+  <a class="boite-auth__marque" href="index-sombre.html">
+    <img src="img/icone.svg" alt="" width="32" height="32" style="border-radius:.5rem">
+    Nyx
+  </a>
+
+  <div class="boite-auth__carte">
+    <h1 class="boite-auth__titre">Content de te revoir</h1>
+    <p class="boite-auth__intro">Connecte-toi pour retrouver tes salons.</p>
+
+    <form class="formulaire" id="formulaire" novalidate>
+      <div>
+        <label class="etiquette" for="email">Adresse e-mail</label>
+        <input class="champ" id="email" name="email" type="email"
+               autocomplete="email" required placeholder="toi@exemple.fr">
+      </div>
+
+      <div>
+        <label class="etiquette" for="mdp">Mot de passe</label>
+        <input class="champ" id="mdp" name="mdp" type="password"
+               autocomplete="current-password" required placeholder="••••••••••••">
+      </div>
+
+      <p class="alerte alerte--erreur" id="message" role="alert" hidden></p>
+
+      <button class="bouton bouton--primaire" type="submit" id="valider">Se connecter</button>
+    </form>
+
+    <p class="boite-auth__bas">
+      Pas encore de compte ? <a href="inscription-sombre.html">Créer un compte</a>
+    </p>
+  </div>
+
+  <a class="retour" href="index-sombre.html">← Retour au site</a>
+</main>
+
+<script src="vendor/supabase.js"></script>
+<script src="config.js"></script>
+<script type="module">
+  import { connexion, redirigeSiConnecte } from './js/auth.js'
+  import { $, alerte } from './js/util.js'
+
+  await redirigeSiConnecte()
+
+  const formulaire = $('#formulaire')
+  const message = $('#message')
+  const valider = $('#valider')
+
+  /** Où aller après la connexion, sans permettre une redirection ouverte. */
+  function suite() {
+    const demande = new URLSearchParams(location.search).get('suite') ?? ''
+    // Uniquement une page du projet : ni URL absolue, ni chemin remontant.
+    return /^[\w-]+\.html$/.test(demande) ? demande : 'app.html'
+  }
+
+  formulaire.addEventListener('submit', async (evenement) => {
+    evenement.preventDefault()
+    alerte(message, null)
+    valider.disabled = true
+    valider.textContent = 'Connexion…'
+
+    const erreur = await connexion($('#email').value.trim(), $('#mdp').value)
+
+    if (erreur) {
+      alerte(message, erreur)
+      valider.disabled = false
+      valider.textContent = 'Se connecter'
+      return
+    }
+
+    location.replace(suite())
+  })
+</script>
+</body>
+</html>

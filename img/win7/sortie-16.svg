@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" role="img" aria-label="Se déconnecter">
+  <title>Se déconnecter</title>
+  <!--
+    Variante simplifiée pour la zone de notification. L'icône de 48 px, avec
+    sa porte en dégradé, devient illisible à cette taille : ici deux formes
+    franches suffisent, sur fond sombre de barre des tâches.
+  -->
+  <path d="M8.5 2H3.2A1.2 1.2 0 0 0 2 3.2v9.6A1.2 1.2 0 0 0 3.2 14h5.3"
+        fill="none" stroke="#e8eef5" stroke-width="1.7" stroke-linecap="round"/>
+  <path d="M9 5.2 13.2 8 9 10.8V9H6.2V7H9z" fill="#ff8a3d" stroke="#8a3d10" stroke-width=".7" stroke-linejoin="round"/>
+</svg>

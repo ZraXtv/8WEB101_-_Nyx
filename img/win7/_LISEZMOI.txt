@@ -1,0 +1,6 @@
+Icônes dessinées pour ce projet, dans le langage visuel d'Aero (dégradés
+vitrés, reflets, ombres douces).
+
+Ce ne sont PAS les icônes de Windows 7 : celles-ci appartiennent à Microsoft
+et ne sont pas redistribuables. Elles en reprennent seulement le style, ce
+qui suffit à rester cohérent avec 7.css sans emprunter d'œuvre protégée.

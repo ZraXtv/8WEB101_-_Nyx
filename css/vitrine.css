@@ -1,0 +1,374 @@
+/* =========================================================================
+   Nyx — page d'accueil
+   Réécriture complète de l'export Webflow : plus de jQuery, plus de
+   webflow.js, plus de classes générées. Une grille, des variables, et
+   quelques animations au défilement pilotées par IntersectionObserver.
+   ========================================================================= */
+
+.enveloppe {
+  width: min(72rem, 100% - 3rem);
+  margin-inline: auto;
+}
+
+@media (max-width: 40rem) {
+  .enveloppe { width: min(72rem, 100% - 2rem); }
+}
+
+/* ---- Barre de navigation ---------------------------------------------- */
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: color-mix(in oklch, var(--fond) 80%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--bordure);
+}
+
+.nav__interieur {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  height: 4rem;
+}
+
+.nav__marque {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--police-titre);
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-decoration: none;
+  letter-spacing: -0.03em;
+}
+
+.nav__logo {
+  width: 1.75rem; height: 1.75rem;
+  border-radius: 0.5rem;
+}
+
+.nav__liens {
+  display: flex;
+  gap: 1.5rem;
+  margin-left: auto;
+  font-size: 0.9375rem;
+}
+
+.nav__liens a {
+  color: var(--texte-attenue);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.nav__liens a:hover { color: var(--texte); }
+
+@media (max-width: 52rem) {
+  .nav__liens { display: none; }
+}
+
+/* ---- Hero -------------------------------------------------------------- */
+
+.hero {
+  position: relative;
+  padding-block: clamp(3.5rem, 10vw, 7rem);
+  text-align: center;
+  overflow: hidden;
+}
+
+/* Halo diffus derrière le titre, purement décoratif. */
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -30%; left: 50%;
+  width: min(48rem, 120%);
+  aspect-ratio: 1;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    circle,
+    color-mix(in oklch, var(--primaire) 14%, transparent) 0%,
+    transparent 62%
+  );
+  pointer-events: none;
+}
+
+.hero > * { position: relative; }
+
+.etiquette-pilule {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.875rem;
+  border: 1px solid var(--bordure);
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--carte) 60%, transparent);
+  font-size: 0.8125rem;
+  color: var(--texte-attenue);
+}
+
+.etiquette-pilule strong {
+  color: var(--primaire);
+  font-weight: 600;
+}
+
+.hero__titre {
+  margin-top: 1.5rem;
+  font-size: clamp(2.25rem, 6vw, 4rem);
+}
+
+.hero__accroche {
+  max-width: 40rem;
+  margin: 1.25rem auto 0;
+  font-size: clamp(1rem, 2.2vw, 1.1875rem);
+  color: var(--texte-attenue);
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.hero__note {
+  margin-top: 1.25rem;
+  font-size: 0.8125rem;
+  color: var(--texte-attenue);
+}
+
+/* Bandeau défilant des salons. */
+.bandeau {
+  margin-top: 3rem;
+  padding-block: 0.875rem;
+  border-block: 1px solid var(--bordure);
+  overflow: hidden;
+  /* Estompe les deux bords pour que le défilement paraisse infini. */
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+
+.bandeau__piste {
+  display: flex;
+  gap: 2.5rem;
+  width: max-content;
+  animation: defile 38s linear infinite;
+  font-family: var(--police-titre);
+  font-size: 0.9375rem;
+  color: var(--texte-attenue);
+  white-space: nowrap;
+}
+
+.bandeau:hover .bandeau__piste { animation-play-state: paused; }
+
+@keyframes defile {
+  /* La piste contient deux copies de la liste : à -50 % on retombe
+     exactement sur la seconde, d'où une boucle sans saut. */
+  to { transform: translateX(-50%); }
+}
+
+/* ---- Sections ---------------------------------------------------------- */
+
+.section { padding-block: clamp(3rem, 8vw, 5.5rem); }
+.section--bordee { border-top: 1px solid var(--bordure); }
+
+.section__entete {
+  max-width: 44rem;
+  margin-bottom: 2.5rem;
+}
+.section__entete--centre { margin-inline: auto; text-align: center; }
+
+.section__titre {
+  margin-top: 0.75rem;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+}
+
+.section__texte {
+  margin-top: 1rem;
+  color: var(--texte-attenue);
+}
+
+/* ---- Grille de cartes -------------------------------------------------- */
+
+.grille {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(17rem, 100%), 1fr));
+}
+
+.carte {
+  padding: 1.5rem;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon-lg);
+  background: color-mix(in oklch, var(--carte) 70%, transparent);
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.carte:hover {
+  border-color: color-mix(in oklch, var(--primaire) 40%, var(--bordure));
+  transform: translateY(-2px);
+}
+
+.carte__icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem; height: 2.75rem;
+  margin-bottom: 1rem;
+  border-radius: var(--rayon);
+  background: color-mix(in oklch, var(--primaire) 14%, transparent);
+  color: var(--primaire);
+}
+
+.carte__titre { font-size: 1.0625rem; }
+
+.carte__sous-titre {
+  margin-top: 0.125rem;
+  font-size: 0.8125rem;
+  color: var(--primaire);
+}
+
+.carte__texte {
+  margin-top: 0.75rem;
+  font-size: 0.9375rem;
+  color: var(--texte-attenue);
+}
+
+/* ---- Avant / après ----------------------------------------------------- */
+
+.comparaison {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
+}
+
+.colonne-compa {
+  padding: 1.5rem;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon-lg);
+}
+
+.colonne-compa--sans { background: color-mix(in oklch, var(--danger) 6%, transparent); }
+.colonne-compa--avec {
+  background: color-mix(in oklch, var(--primaire) 7%, transparent);
+  border-color: color-mix(in oklch, var(--primaire) 30%, var(--bordure));
+}
+
+.colonne-compa h3 { font-size: 1.125rem; }
+
+.colonne-compa ul {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.colonne-compa li {
+  display: flex;
+  gap: 0.625rem;
+  font-size: 0.9375rem;
+  color: var(--texte-attenue);
+}
+
+.colonne-compa svg { flex: none; margin-top: 0.2rem; }
+.colonne-compa--sans svg { color: var(--danger); }
+.colonne-compa--avec svg { color: var(--primaire); }
+
+/* ---- Appel à l'action -------------------------------------------------- */
+
+.appel {
+  padding: clamp(2rem, 6vw, 3.5rem);
+  border: 1px solid color-mix(in oklch, var(--primaire) 25%, var(--bordure));
+  border-radius: var(--rayon-lg);
+  background:
+    radial-gradient(circle at 50% 0%, color-mix(in oklch, var(--primaire) 12%, transparent), transparent 70%),
+    var(--carte);
+  text-align: center;
+}
+
+.appel__meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 2rem;
+  font-size: 0.8125rem;
+}
+
+.appel__meta dt { color: var(--texte-attenue); letter-spacing: 0.08em; text-transform: uppercase; }
+.appel__meta dd { margin: 0.25rem 0 0; font-family: var(--police-titre); font-weight: 700; color: var(--primaire); }
+
+/* ---- FAQ --------------------------------------------------------------- */
+
+.faq { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.faq details {
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: color-mix(in oklch, var(--carte) 60%, transparent);
+  overflow: hidden;
+}
+
+.faq summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  font-family: var(--police-titre);
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.faq summary::-webkit-details-marker { display: none; }
+
+.faq summary::after {
+  content: '';
+  flex: none;
+  width: 0.6rem; height: 0.6rem;
+  border-right: 2px solid var(--texte-attenue);
+  border-bottom: 2px solid var(--texte-attenue);
+  transform: rotate(45deg) translate(-0.1rem, -0.1rem);
+  transition: transform 0.2s;
+}
+
+.faq details[open] summary::after { transform: rotate(-135deg) translate(-0.1rem, -0.1rem); }
+
+.faq p {
+  padding: 0 1.25rem 1.25rem;
+  font-size: 0.9375rem;
+  color: var(--texte-attenue);
+}
+
+/* ---- Pied de page ------------------------------------------------------ */
+
+.pied {
+  padding-block: 2.5rem;
+  border-top: 1px solid var(--bordure);
+  font-size: 0.875rem;
+  color: var(--texte-attenue);
+}
+
+.pied__interieur {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.pied nav { display: flex; flex-wrap: wrap; gap: 1.25rem; }
+.pied a { text-decoration: none; transition: color 0.15s; }
+.pied a:hover { color: var(--texte); }
+
+/* ---- Apparition au défilement ------------------------------------------ */
+
+.apparait {
+  opacity: 0;
+  transform: translateY(1rem);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.apparait.visible { opacity: 1; transform: none; }
+
+/* Sans JavaScript, rien ne doit rester invisible. */
+.no-js .apparait { opacity: 1; transform: none; }

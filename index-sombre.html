@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="fr" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nyx — Ta communauté, tes serveurs, tes salons</title>
+<meta name="description" content="Messagerie communautaire : serveurs et salons, amis, messages privés, mini-jeu et suivi sportif. Projet fil rouge 8WEB101.">
+<meta name="theme-color" content="#141924">
+<link rel="icon" href="img/icone.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="img/icone-180.png">
+<link rel="stylesheet" href="css/polices.css">
+<link rel="stylesheet" href="css/themes.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/vitrine.css">
+<script>document.documentElement.classList.remove('no-js')</script>
+</head>
+<body>
+
+<header class="nav">
+  <div class="enveloppe nav__interieur">
+    <a class="nav__marque" href="index-sombre.html">
+      <img class="nav__logo" src="img/icone.svg" alt="" width="28" height="28">
+      Nyx
+    </a>
+    <nav class="nav__liens" aria-label="Sections du site">
+      <a href="#projet">Le projet</a>
+      <a href="#pour-qui">Pour qui</a>
+      <a href="#pourquoi">Pourquoi</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <a class="bouton bouton--primaire" href="inscription-sombre.html">Rejoindre</a>
+  </div>
+</header>
+
+<main>
+
+  <!-- ================= Hero ================= -->
+  <section class="hero">
+    <div class="enveloppe">
+      <p class="etiquette-pilule"><strong>Nouveau</strong> Bêta — projet fil rouge 8WEB101</p>
+
+      <h1 class="hero__titre">Ta communauté,<br>tes serveurs, tes salons.</h1>
+
+      <p class="hero__accroche">
+        Crée un serveur, organise-le en salons, et discutez en temps réel.
+        Ajoute tes amis, lance une partie, suis ton équipe. Rien de superflu.
+      </p>
+
+      <div class="hero__actions">
+        <a class="bouton bouton--primaire" href="inscription-sombre.html">Créer mon serveur</a>
+        <a class="bouton bouton--discret" href="connexion-sombre.html">J’ai déjà un compte</a>
+      </div>
+
+      <p class="hero__note">Gratuit, sans publicité. Tes messages ne quittent pas tes serveurs.</p>
+    </div>
+
+    <div class="bandeau" aria-hidden="true">
+      <!-- La liste est écrite deux fois : l'animation revient à -50 %,
+           donc sur la seconde copie, sans rupture visible. -->
+      <div class="bandeau__piste">
+        <span>#général</span><span>#gaming</span><span>#musique</span><span>#sport</span>
+        <span>#entraide</span><span>#dev</span><span>#cinéma</span><span>#irl</span>
+        <span>#annonces</span><span>#projets</span>
+        <span>#général</span><span>#gaming</span><span>#musique</span><span>#sport</span>
+        <span>#entraide</span><span>#dev</span><span>#cinéma</span><span>#irl</span>
+        <span>#annonces</span><span>#projets</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Le projet ================= -->
+  <section class="section section--bordee" id="projet">
+    <div class="enveloppe">
+      <div class="section__entete apparait">
+        <p class="titre-section">Le projet</p>
+        <h2 class="section__titre">Une messagerie communautaire, complète</h2>
+        <p class="section__texte">
+          Nyx reprend le modèle qui a fait ses preuves — un serveur par communauté,
+          des salons par sujet — et y ajoute ce qui manque quand on veut vraiment
+          garder un groupe vivant.
+        </p>
+      </div>
+
+      <div class="grille">
+        <article class="carte apparait">
+          <div class="carte__icone" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18"/>
+            </svg>
+          </div>
+          <h3 class="carte__titre">Serveurs et salons</h3>
+          <p class="carte__texte">
+            Un serveur par communauté, autant de salons que de sujets. Trois rôles —
+            propriétaire, administrateur, membre — décident qui gère quoi, et un code
+            d’invitation renouvelable ouvre la porte à qui tu veux.
+          </p>
+        </article>
+
+        <article class="carte apparait">
+          <div class="carte__icone" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <h3 class="carte__titre">Amis et messages privés</h3>
+          <p class="carte__texte">
+            On s’ajoute par pseudo exact, on accepte ou on refuse. Chaque amitié ouvre
+            une conversation à deux, avec les quatre états à la manière de WhatsApp :
+            en cours d’envoi, envoyé, reçu, lu.
+          </p>
+        </article>
+
+        <article class="carte apparait">
+          <div class="carte__icone" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
+          </div>
+          <h3 class="carte__titre">Temps réel</h3>
+          <p class="carte__texte">
+            Les messages arrivent sans rafraîchir la page, tout comme les accusés de
+            lecture, l’indicateur « en train d’écrire » et les pastilles en ligne.
+            Chaque salon garde son historique horodaté.
+          </p>
+        </article>
+
+        <article class="carte apparait">
+          <div class="carte__icone" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 11h4M8 9v4M15 12h.01M18 10h.01"/><rect x="2" y="6" width="20" height="12" rx="4"/>
+            </svg>
+          </div>
+          <h3 class="carte__titre">Puissance 4 intégré</h3>
+          <p class="carte__texte">
+            Une partie se lance depuis n’importe quelle conversation ou salon. Les
+            règles sont appliquées par la base de données, jamais par le navigateur :
+            personne ne peut tricher depuis la console.
+          </p>
+        </article>
+
+        <article class="carte apparait">
+          <div class="carte__icone" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+            </svg>
+          </div>
+          <h3 class="carte__titre">Suivi sportif</h3>
+          <p class="carte__texte">
+            Choisis tes équipes dans une liste ou cherche n’importe quel club. Un
+            encart permanent affiche leurs rencontres depuis toute l’application :
+            score en direct, prochain match, dernier résultat.
+          </p>
+        </article>
+
+        <article class="carte apparait">
+          <div class="carte__icone" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+          <h3 class="carte__titre">Cloisonné par la base</h3>
+          <p class="carte__texte">
+            Tu ne vois que les serveurs dont tu es membre, et personne ne lit une
+            conversation à laquelle il ne participe pas. Ces règles sont appliquées
+            par la base de données elle-même, pas seulement par l’interface.
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Appel à l'action ================= -->
+  <section class="section">
+    <div class="enveloppe">
+      <div class="appel apparait">
+        <h2 class="section__titre">Crée ton serveur en moins d’une minute</h2>
+        <p class="section__texte" style="max-width:34rem;margin-inline:auto">
+          Pas d’installation, pas de carte bancaire, pas de publicité.
+        </p>
+        <div class="hero__actions">
+          <a class="bouton bouton--primaire" href="inscription-sombre.html">Créer mon serveur</a>
+        </div>
+        <dl class="appel__meta">
+          <div><dt>Accès</dt><dd>Immédiat</dd></div>
+          <div><dt>Tarif</dt><dd>Gratuit</dd></div>
+          <div><dt>Publicité</dt><dd>Aucune</dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= À qui ça s'adresse ================= -->
+  <section class="section section--bordee" id="pour-qui">
+    <div class="enveloppe">
+      <div class="section__entete section__entete--centre apparait">
+        <p class="titre-section">Pour qui</p>
+        <h2 class="section__titre">À qui s’adresse Nyx</h2>
+      </div>
+
+      <div class="grille">
+        <article class="carte apparait">
+          <h3 class="carte__titre">Les groupes d’amis</h3>
+          <p class="carte__sous-titre">De 3 à 20 personnes</p>
+          <p class="carte__texte">
+            Un serveur pour la bande, un salon par sujet : les sorties d’un côté, les
+            mèmes de l’autre. Plus besoin de remonter trois cents messages pour
+            retrouver l’adresse du resto.
+          </p>
+        </article>
+
+        <article class="carte apparait">
+          <h3 class="carte__titre">Les communautés de jeu</h3>
+          <p class="carte__sous-titre">Guildes, équipes, tournois</p>
+          <p class="carte__texte">
+            Un salon pour l’organisation, un pour les stratégies, un pour le
+            hors-sujet. L’historique horodaté permet de relire ce qui s’est dit
+            pendant la session d’hier soir.
+          </p>
+        </article>
+
+        <article class="carte apparait">
+          <h3 class="carte__titre">Les associations étudiantes</h3>
+          <p class="carte__sous-titre">BDE, clubs, projets</p>
+          <p class="carte__texte">
+            Un serveur par association, des salons par pôle. Les rôles propriétaire et
+            administrateur permettent de passer le relais d’une promo à l’autre sans
+            tout recréer.
+          </p>
+        </article>
+
+        <article class="carte apparait">
+          <h3 class="carte__titre">Les collectifs créatifs</h3>
+          <p class="carte__sous-titre">Musique, design, vidéo</p>
+          <p class="carte__texte">
+            Partager un travail en cours, recueillir des retours, garder une trace des
+            décisions : chaque projet a son salon. Rien ne se perd dans un fil unique
+            où les sujets se chevauchent.
+          </p>
+        </article>
+
+        <article class="carte apparait">
+          <h3 class="carte__titre">Les groupes sportifs</h3>
+          <p class="carte__sous-titre">Équipes et supporters</p>
+          <p class="carte__texte">
+            Convocations, résultats, covoiturage : un salon par besoin. Et l’encart de
+            suivi affiche le score de ton équipe pendant que vous en parlez.
+          </p>
+        </article>
+
+        <article class="carte apparait">
+          <h3 class="carte__titre">Les équipes projet</h3>
+          <p class="carte__sous-titre">Travail en petit comité</p>
+          <p class="carte__texte">
+            Un serveur privé, quelques salons, et personne d’extérieur ne voit ce qui
+            s’y dit. Les règles d’accès sont appliquées par la base de données, pas
+            seulement par l’interface.
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Pourquoi ================= -->
+  <section class="section section--bordee" id="pourquoi">
+    <div class="enveloppe">
+      <div class="section__entete apparait">
+        <p class="titre-section">Pourquoi</p>
+        <h2 class="section__titre">Pourquoi une messagerie de plus&nbsp;?</h2>
+        <p class="section__texte">
+          Parce qu’une communauté, ce n’est pas un fil d’actualité. Les grandes
+          plateformes vivent de ton attention, pas de tes conversations ; un groupe
+          unique finit toujours par mélanger tous les sujets ; et c’est soit
+          totalement public, soit totalement fermé — jamais l’entre-deux.
+        </p>
+      </div>
+
+      <div class="comparaison">
+        <div class="colonne-compa colonne-compa--sans apparait">
+          <h3>Sans Nyx</h3>
+          <ul class="liste-nue">
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg> Un seul fil pour tous les sujets</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg> Les messages importants se perdent</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg> Personne ne sait qui gère quoi</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg> Aucun historique consultable</li>
+          </ul>
+        </div>
+
+        <div class="colonne-compa colonne-compa--avec apparait">
+          <h3>Avec Nyx</h3>
+          <ul class="liste-nue">
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg> Un salon par sujet</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg> Les messages arrivent en temps réel</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg> Des rôles : propriétaire, admin, membre</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg> Un historique horodaté et consultable</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FAQ ================= -->
+  <section class="section section--bordee" id="faq">
+    <div class="enveloppe">
+      <div class="section__entete section__entete--centre apparait">
+        <p class="titre-section">FAQ</p>
+        <h2 class="section__titre">Questions fréquentes</h2>
+      </div>
+
+      <div class="faq apparait" style="max-width:46rem;margin-inline:auto">
+        <details>
+          <summary>Nyx est-il gratuit ?</summary>
+          <p>Oui. C’est un projet étudiant : pas de publicité, pas d’offre payante, pas de revente de données.</p>
+        </details>
+        <details>
+          <summary>Faut-il installer quelque chose ?</summary>
+          <p>Non. Nyx fonctionne dans le navigateur, sur ordinateur comme sur téléphone.</p>
+        </details>
+        <details>
+          <summary>Comment fonctionnent les serveurs ?</summary>
+          <p>Tu crées un serveur, il s’ouvre avec un salon #general. Tu ajoutes ensuite autant de salons que tu veux, et tu attribues les rôles.</p>
+        </details>
+        <details>
+          <summary>Comment rejoindre le serveur d’un ami ?</summary>
+          <p>Chaque serveur a un code d’invitation, que son propriétaire partage avec qui il veut et peut renouveler à tout moment si l’ancien a trop circulé. Dans le menu, « Rejoindre un serveur » ne demande que ce code.</p>
+        </details>
+        <details>
+          <summary>Qui peut lire mes messages ?</summary>
+          <p>Seuls les membres du serveur, ou ton interlocuteur pour une conversation privée. Ces règles sont appliquées par la base de données elle-même, pas seulement par l’interface : elles tiennent même si quelqu’un contourne la page.</p>
+        </details>
+        <details>
+          <summary>Que deviennent mes données ?</summary>
+          <p>Ton adresse e-mail sert uniquement à te connecter et n’est jamais affichée. Tes messages ne sont lisibles que par les membres de tes serveurs. La suppression de compte n’est pas encore disponible : elle est en cours de développement.</p>
+        </details>
+        <details>
+          <summary>D’où viennent les scores sportifs ?</summary>
+          <p>D’un service extérieur, TheSportsDB, interrogé au nom du projet. Les réponses sont mises en cache pour ne pas le solliciter inutilement, et l’application reste utilisable s’il ne répond pas.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Dernier appel ================= -->
+  <section class="section">
+    <div class="enveloppe" style="text-align:center">
+      <h2 class="section__titre apparait">Rejoins ta communauté</h2>
+      <p class="section__texte apparait">Crée ton serveur, ouvre tes salons, invite tes amis.</p>
+      <div class="hero__actions apparait">
+        <a class="bouton bouton--primaire" href="inscription-sombre.html">Créer mon compte</a>
+        <a class="bouton bouton--discret" href="connexion-sombre.html">Se connecter</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="pied">
+  <div class="enveloppe pied__interieur">
+    <p>© 2026 Nyx — Projet fil rouge 8WEB101</p>
+    <nav aria-label="Liens de pied de page">
+      <a href="index-sombre.html">Accueil</a>
+      <a href="connexion-sombre.html">Connexion</a>
+      <a href="inscription-sombre.html">Inscription</a>
+      <a href="app.html">Messagerie</a>
+    </nav>
+  </div>
+</footer>
+
+<script type="module" src="js/vitrine.js"></script>
+</body>
+</html>

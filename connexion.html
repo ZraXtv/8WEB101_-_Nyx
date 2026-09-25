@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connexion — Nyx</title>
+<meta name="theme-color" content="#1f3a5f">
+<link rel="icon" href="img/icone.svg" type="image/svg+xml">
+
+<!-- Habillage Windows 7 : voir les crédits dans index.html et win7/LICENCE-WebWin7.txt -->
+<link rel="stylesheet" href="win7/7.css">
+<link rel="stylesheet" href="css/win7.css">
+<link rel="stylesheet" href="css/win7-auth.css">
+</head>
+<body>
+
+<div class="desktop">
+
+  <div class="bureau-icones">
+    <div class="desktop-icon" role="button" tabindex="0" data-lien="index.html" aria-label="Retour au bureau">
+      <img src="img/icone.svg" alt="" width="48" height="48">
+      <span class="label">Bureau</span>
+    </div>
+    <div class="desktop-icon" role="button" tabindex="0" data-lien="inscription.html" aria-label="Créer un compte">
+      <img src="img/win7/utilisateur-nouveau.svg" alt="" width="48" height="48">
+      <span class="label">Créer un compte</span>
+    </div>
+  </div>
+
+  <div class="window active draggable resizable centree" id="fenetre-connexion" data-icone="img/win7/utilisateur-cle.svg"
+       style="width:380px">
+
+    <div class="title-bar">
+      <div class="title-bar-text">Ouverture de session</div>
+      <div class="title-bar-controls">
+        <button data-action="reduire" aria-label="Minimize" title="Réduire"></button>
+        <button data-action="agrandir" aria-label="Maximize" title="Agrandir"></button>
+        <button data-action="fermer" aria-label="Close" title="Fermer"></button>
+      </div>
+    </div>
+
+    <div class="window-body has-space">
+      <div class="identite">
+        <div class="identite__vignette"><img src="img/icone.svg" alt=""></div>
+        <p class="identite__titre">Connexion à Nyx</p>
+      </div>
+
+      <form class="champs" id="formulaire" novalidate>
+        <div class="field-row-stacked">
+          <label for="email">Adresse e-mail</label>
+          <input id="email" name="email" type="email" autocomplete="email"
+                 required placeholder="toi@exemple.fr">
+        </div>
+
+        <div class="field-row-stacked">
+          <label for="mdp">Mot de passe</label>
+          <input id="mdp" name="mdp" type="password" autocomplete="current-password"
+                 required placeholder="••••••••••••">
+        </div>
+
+        <p class="aide7 aide7--erreur" id="message" role="alert" hidden></p>
+
+        <div class="actions7">
+          <button type="button" id="annuler">Annuler</button>
+          <button type="submit" id="valider">Se connecter</button>
+        </div>
+      </form>
+
+      <p class="lien-bas">
+        Pas encore de compte ? <a href="inscription.html">Créer un compte</a>
+      </p>
+    </div>
+
+    <div class="resize-handle n"  data-dir="n"></div>
+    <div class="resize-handle s"  data-dir="s"></div>
+    <div class="resize-handle e"  data-dir="e"></div>
+    <div class="resize-handle w"  data-dir="w"></div>
+    <div class="resize-handle nw" data-dir="nw"></div>
+    <div class="resize-handle ne" data-dir="ne"></div>
+    <div class="resize-handle sw" data-dir="sw"></div>
+    <div class="resize-handle se" data-dir="se"></div>
+  </div>
+
+</div>
+
+<div class="barre-taches">
+  <a class="demarrer" href="index.html">
+    <img src="img/icone.svg" alt="" width="18" height="18">
+    Démarrer
+  </a>
+  <div class="barre-taches__boutons"></div>
+  <div class="horloge"></div>
+</div>
+
+<script src="vendor/supabase.js"></script>
+<script src="config.js"></script>
+<script type="module" src="js/win7-bureau.js"></script>
+<script type="module">
+  import { sb } from './js/supabase.js'
+  import { connexion, redirigeSiConnecte } from './js/auth.js'
+  import { ouvrirSession } from './js/demarrage.js'
+  import { $ } from './js/util.js'
+
+  await redirigeSiConnecte()
+
+  const formulaire = $('#formulaire')
+  const message = $('#message')
+  const valider = $('#valider')
+
+  $('#annuler').addEventListener('click', () => { location.href = 'index.html' })
+
+  /** Où aller ensuite, sans permettre une redirection ouverte. */
+  function suite() {
+    const demande = new URLSearchParams(location.search).get('suite') ?? ''
+    // Uniquement une page du projet : ni URL absolue, ni chemin remontant.
+    return /^[\w-]+\.html$/.test(demande) ? demande : 'app.html'
+  }
+
+  /**
+   * Nom et photo du compte, pour personnaliser l'écran de session.
+   *
+   * Rien ici n'est bloquant : si la requête échoue, on ouvre quand même la
+   * session avec un nom générique et la vignette par défaut. Une photo de
+   * profil ne vaut pas d'empêcher quelqu'un d'entrer.
+   */
+  async function compte() {
+    try {
+      const { data } = await sb.auth.getSession()
+      const id = data.session?.user?.id
+      if (!id) return { nom: 'Utilisateur', avatar: null }
+
+      const { data: profil } = await sb
+        .from('profiles')
+        .select('display_name, avatar_url')
+        .eq('id', id)
+        .single()
+
+      return {
+        nom: profil?.display_name ?? 'Utilisateur',
+        avatar: profil?.avatar_url ?? null,
+      }
+    } catch {
+      return { nom: 'Utilisateur', avatar: null }
+    }
+  }
+
+  formulaire.addEventListener('submit', async (evenement) => {
+    evenement.preventDefault()
+    message.hidden = true
+    valider.disabled = true
+    valider.textContent = 'Connexion…'
+
+    const erreur = await connexion($('#email').value.trim(), $('#mdp').value)
+
+    if (erreur) {
+      message.textContent = erreur
+      message.hidden = false
+      valider.disabled = false
+      valider.textContent = 'Se connecter'
+      return
+    }
+
+    const { nom, avatar } = await compte()
+    await ouvrirSession({ nom, avatar, etat: 'Bienvenue', destination: suite() })
+  })
+</script>
+</body>
+</html>

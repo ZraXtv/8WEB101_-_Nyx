@@ -1,0 +1,744 @@
+/* =========================================================================
+   Nyx — messagerie
+   ========================================================================= */
+
+body.app { overflow: hidden; }
+
+/* ---- Zone de discussion ------------------------------------------------ */
+
+.discussion {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.discussion__entete {
+  position: relative;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 4rem;
+  padding-inline: 1rem;
+  border-bottom: 1px solid var(--bordure);
+  background: var(--entete-fond);
+  color: var(--entete-texte);
+  backdrop-filter: blur(var(--flou));
+}
+
+.discussion__titre {
+  font-family: var(--police-titre);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+.discussion__titre span { color: var(--texte-attenue); }
+
+.discussion__sous-titre { font-size: 0.6875rem; color: var(--texte-attenue); }
+
+.discussion__jeu {
+  position: absolute;
+  right: 1rem;
+  width: 2.5rem; height: 2.5rem;
+  border-radius: 50%;
+}
+
+/* Pastille signalant une partie en cours. */
+.discussion__jeu[data-actif='true']::after {
+  content: '';
+  position: absolute;
+  top: 0.35rem; right: 0.35rem;
+  width: 0.5rem; height: 0.5rem;
+  border-radius: 50%;
+  background: var(--primaire);
+}
+
+.discussion__fil {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1rem 1rem 7rem;
+  scrollbar-width: none;
+}
+.discussion__fil::-webkit-scrollbar { display: none; }
+
+.fil__interieur {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 36rem;
+  margin-inline: auto;
+}
+
+.fil__vide,
+.fil__chargement {
+  padding-block: 3rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--texte-attenue);
+}
+
+/* ---- Groupes de messages ----------------------------------------------- */
+
+.groupe { display: flex; gap: 0.625rem; align-items: flex-start; }
+.groupe--moi { flex-direction: column; align-items: flex-end; }
+
+/*
+ * `align-items: flex-start` n'est pas un détail d'alignement : sans lui, une
+ * colonne flex ÉTIRE ses enfants à la largeur du plus large. Un « hey » posé
+ * sous un long message prenait donc toute la largeur de ce dernier.
+ *
+ * Les bulles envoyées s'en sortaient par hasard, `flex-end` ayant le même
+ * effet de rétraction ; celles reçues, elles, n'avaient rien.
+ */
+.groupe__corps {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  max-width: 75%;
+}
+.groupe--moi .groupe__corps { align-items: flex-end; }
+
+.groupe__auteur {
+  padding-inline: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--texte-attenue);
+}
+
+.bulle {
+  padding: 0.5rem 0.875rem;
+  border-radius: var(--rayon-bulle);
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.bulle--moi {
+  background: var(--bulle-moi-fond);
+  color: var(--bulle-moi-texte);
+  border: 1px solid var(--bulle-bordure, transparent);
+}
+.bulle--autre {
+  background: var(--bulle-autre-fond);
+  color: var(--bulle-autre-texte);
+  border: 1px solid var(--bulle-bordure, transparent);
+}
+.bulle--attente { opacity: 0.6; }
+
+.groupe__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding-inline: 0.25rem;
+  font-size: 0.625rem;
+  color: var(--texte-attenue);
+}
+
+/* Accusés : une coche = envoyé, deux = reçu, deux colorées = lu. */
+.accuse { display: inline-flex; }
+.accuse--lu { color: var(--primaire); }
+
+/* Annonce de l'application : ni bulle, ni avatar. */
+.systeme {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding-block: 0.25rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--texte-attenue);
+}
+.systeme svg { flex: none; color: var(--accent); }
+
+/* « Alice est en train d'écrire… » */
+.frappe {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-inline: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--texte-attenue);
+}
+
+.frappe__points { display: flex; gap: 0.2rem; }
+.frappe__points span {
+  width: 0.35rem; height: 0.35rem;
+  border-radius: 50%;
+  background: var(--texte-attenue);
+  animation: rebond 1.2s infinite;
+}
+.frappe__points span:nth-child(2) { animation-delay: 0.15s; }
+.frappe__points span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes rebond {
+  0%, 60%, 100% { transform: none; opacity: 0.4; }
+  30%           { transform: translateY(-0.25rem); opacity: 1; }
+}
+
+/* ---- Zone de saisie ---------------------------------------------------- */
+
+.saisie {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 1rem;
+  z-index: 30;
+  display: flex;
+  justify-content: center;
+  padding-inline: 1rem;
+  pointer-events: none;
+}
+
+.saisie__boite {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 36rem;
+  padding: 0.375rem 0.375rem 0.375rem 1rem;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon-saisie);
+  background: var(--saisie-fond);
+  backdrop-filter: blur(var(--flou));
+  box-shadow: var(--ombre);
+  pointer-events: auto;
+}
+
+.saisie__champ {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  outline: none;
+  padding-block: 0.5rem;
+}
+.saisie__champ::placeholder { color: var(--texte-attenue); }
+
+.saisie__envoi {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem; height: 2.25rem;
+  border-radius: 50%;
+  background: var(--primaire);
+  color: var(--sur-primaire);
+  transition: opacity 0.15s;
+}
+.saisie__envoi[disabled] { opacity: 0.4; cursor: not-allowed; }
+
+/* ---- Encart de suivi --------------------------------------------------- */
+
+/*
+ * Sur téléphone : bandeau d'une ligne, DANS le flux, qui décale les messages
+ * au lieu de passer par-dessus. À partir de 1024 px : carte flottante calée
+ * sous la ligne de l'en-tête.
+ *
+ * Le seuil tient à la géométrie : le fil est centré sur 36rem et la carte
+ * occupe 16rem à droite ; en dessous de 1024 px elle mordrait sur les bulles.
+ */
+.encart {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--bordure);
+  background: var(--encart-fond);
+  font-size: 0.75rem;
+}
+
+/* Sans règle, la ligne était un simple bloc : ses <span> se collaient bout à
+   bout, et l'on lisait « test2 salons ». */
+.encart__ligne { display: flex; flex: 1; align-items: center; gap: 0.75rem; min-width: 0; }
+
+.encart__serveur { display: flex; align-items: center; gap: 0.5rem; color: var(--texte-attenue); }
+.encart__nom { flex: 1; min-width: 0; font-family: var(--police-titre); font-weight: 700; font-size: 0.875rem; }
+.encart__compte { flex: none; color: var(--texte-attenue); }
+
+.encart__match { display: flex; align-items: center; gap: 0.5rem; flex: 1; min-width: 0; }
+.encart__equipe { flex: 1; min-width: 0; font-weight: 500; }
+.encart__equipe--droite { text-align: right; }
+.encart__score { flex: none; font-weight: 700; font-variant-numeric: tabular-nums; }
+.encart__etat { flex: none; color: var(--texte-attenue); }
+
+.encart__tableau { display: none; }
+
+/* Pastille « en direct ». */
+.direct {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  width: 0.5rem; height: 0.5rem;
+}
+.direct::before,
+.direct::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--primaire);
+}
+.direct::before { animation: onde 1.6s cubic-bezier(0, 0, 0.2, 1) infinite; }
+
+@keyframes onde {
+  0%   { transform: scale(1);   opacity: 0.7; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+
+@media (min-width: 64rem) {
+  .encart {
+    position: absolute;
+    right: 1rem;
+    top: 5rem;
+    z-index: 30;
+    display: block;
+    width: 16rem;
+    padding: 0.75rem;
+    border: 1px solid var(--bordure);
+    border-radius: var(--rayon-lg);
+    background: var(--encart-fond);
+    backdrop-filter: blur(var(--flou));
+  }
+  .encart__ligne { display: none; }
+  .encart__tableau { display: block; }
+  .encart--serveur .encart__nom { margin-top: 0.5rem; font-size: 1.125rem; }
+}
+
+.match-empile + .match-empile {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--bordure);
+}
+
+.match-empile__entete {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.625rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--texte-attenue);
+}
+.match-empile__competition { flex: 1; min-width: 0; }
+.match-empile__etat { flex: none; text-transform: none; letter-spacing: normal; }
+
+.match-empile__camp {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+.match-empile__camp span:first-child { flex: 1; min-width: 0; font-size: 0.875rem; font-weight: 500; }
+.match-empile__camp span:last-child {
+  flex: none;
+  font-family: var(--police-titre);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Menu latéral ------------------------------------------------------ */
+
+.hamburger {
+  position: fixed;
+  left: 1rem; top: 1rem;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem; height: 2.75rem;
+  border-radius: 50%;
+  background: var(--menu-fond);
+  backdrop-filter: blur(var(--flou));
+  box-shadow: inset 0 0 0 1px var(--bordure);
+  transition: transform 0.15s;
+}
+.hamburger:hover { transform: scale(1.05); }
+
+.voile {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: color-mix(in oklch, var(--fond) 60%, transparent);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.voile[data-ouvert='true'] { opacity: 1; pointer-events: auto; }
+
+.menu {
+  position: fixed;
+  inset-block: 0;
+  left: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  width: 18rem;
+  max-width: 85vw;
+  border-right: 1px solid var(--bordure);
+  background: var(--menu-fond);
+  backdrop-filter: blur(calc(var(--flou) * 2));
+  transform: translateX(-100%);
+  transition: transform 0.3s ease-out;
+}
+.menu[data-ouvert='true'] { transform: none; }
+
+.menu__entete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.25rem 0;
+}
+
+.menu__marque {
+  font-family: var(--police-titre);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.menu__corps {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1.25rem 0.75rem 0;
+}
+
+.menu__pied {
+  padding: 0.75rem;
+  border-top: 1px solid var(--bordure);
+}
+
+.menu__entree {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--rayon);
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  color: color-mix(in oklch, var(--texte) 90%, transparent);
+  transition: background-color 0.15s;
+}
+.menu__entree:hover { background: var(--secondaire); }
+.menu__entree--actif { background: color-mix(in oklch, var(--primaire) 15%, transparent); color: var(--primaire); }
+.menu__entree--discret { color: var(--texte-attenue); }
+.menu__entree span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.menu__entree svg { flex: none; }
+
+.menu__pastille {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem; height: 1.25rem;
+  padding-inline: 0.375rem;
+  border-radius: 999px;
+  background: var(--primaire);
+  color: var(--sur-primaire);
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.menu__separateur {
+  height: 1px;
+  margin: 0.75rem 0.5rem;
+  background: var(--bordure);
+}
+
+.menu__titre-groupe {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding-inline: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+.menu__titre-groupe .titre-section { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.icone-serveur {
+  position: relative;
+  flex: none;
+  width: 2.25rem; height: 2.25rem;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--secondaire);
+  box-shadow: inset 0 0 0 1px var(--bordure);
+}
+.icone-serveur img { width: 100%; height: 100%; object-fit: cover; }
+.icone-serveur span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-family: var(--police-titre);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--texte-attenue);
+}
+
+.menu__profil {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.5rem;
+  border-radius: var(--rayon);
+  text-align: left;
+  transition: background-color 0.15s;
+}
+.menu__profil:hover { background: var(--secondaire); }
+.menu__profil > span:nth-child(2) { flex: 1; min-width: 0; }
+.menu__profil strong { display: block; font-size: 0.875rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.menu__profil small { display: block; font-size: 0.75rem; color: var(--texte-attenue); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---- Écran d'accueil (aucun fil ouvert) -------------------------------- */
+
+.accueil-vide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 2rem;
+  text-align: center;
+}
+.accueil-vide h2 { font-size: 1.25rem; }
+.accueil-vide p { margin-top: 0.5rem; max-width: 24rem; color: var(--texte-attenue); }
+.accueil-vide form { display: flex; gap: 0.5rem; margin-top: 1.5rem; width: min(22rem, 100%); }
+
+/* ---- Listes dans les fenêtres ------------------------------------------ */
+
+.ligne {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: var(--rayon);
+  transition: background-color 0.15s;
+}
+.ligne:hover { background: color-mix(in oklch, var(--secondaire) 60%, transparent); }
+
+.ligne__texte { flex: 1; min-width: 0; }
+.ligne__texte strong { display: block; font-size: 0.875rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ligne__texte small { display: block; font-size: 0.75rem; color: var(--texte-attenue); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ligne__actions { display: flex; flex: none; gap: 0.25rem; }
+
+.sous-section { margin-bottom: 1.25rem; }
+.sous-section:last-child { margin-bottom: 0; }
+.sous-section > .titre-section { display: block; margin-bottom: 0.5rem; }
+.sous-section__vide { padding-inline: 0.25rem; font-size: 0.875rem; color: var(--texte-attenue); }
+
+/* ---- Puces de filtre (fenêtre Sport) ----------------------------------- */
+
+.puces { display: flex; flex-wrap: wrap; gap: 0.375rem; }
+
+.puce {
+  padding: 0.375rem 0.75rem;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--secondaire) 60%, transparent);
+  color: var(--texte-attenue);
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: background-color 0.15s, color 0.15s;
+}
+.puce:hover { background: var(--secondaire); color: var(--texte); }
+.puce[aria-pressed='true'] { background: var(--primaire); color: var(--sur-primaire); }
+
+.blason {
+  flex: none;
+  width: 2.25rem; height: 2.25rem;
+  padding: 0.125rem;
+  border-radius: 50%;
+  background: var(--secondaire);
+  box-shadow: inset 0 0 0 1px var(--bordure);
+  object-fit: contain;
+}
+.blason--initiales {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.recherche {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-inline: 0.75rem;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: color-mix(in oklch, var(--secondaire) 45%, transparent);
+}
+.recherche:focus-within { border-color: var(--primaire); }
+.recherche svg { flex: none; color: var(--texte-attenue); }
+.recherche input {
+  flex: 1;
+  min-width: 0;
+  min-height: 2.75rem;
+  border: none;
+  background: none;
+  outline: none;
+}
+
+/* ---- Puissance 4 -------------------------------------------------------- */
+
+.p4 { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+
+.p4__grille {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.375rem;
+  width: 100%;
+  max-width: 22rem;
+  padding: 0.5rem;
+  border-radius: var(--rayon);
+  background: var(--secondaire);
+}
+
+.p4__case {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--fond);
+  transition: background-color 0.15s, transform 0.15s;
+}
+.p4__case--j1 { background: var(--primaire); }
+.p4__case--j2 { background: var(--accent); }
+.p4__case--gagnante { box-shadow: 0 0 0 2px var(--texte); }
+
+.p4__colonnes {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.375rem;
+  width: 100%;
+  max-width: 22rem;
+  padding-inline: 0.5rem;
+}
+
+.p4__colonne {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-block: 0.375rem;
+
+  /* La grille décide de la largeur, pas le bouton. Sans ces deux lignes, le
+     thème Windows 7 — où 7.css impose une largeur minimale à tout <button> —
+     poussait les dernières colonnes hors de la fenêtre : deux d'entre elles
+     devenaient injouables. */
+  min-width: 0;
+  padding-inline: 0;
+  border-radius: var(--rayon);
+  color: var(--texte-attenue);
+  transition: background-color 0.15s, color 0.15s;
+}
+.p4__colonne:hover:not([disabled]) { background: var(--secondaire); color: var(--primaire); }
+.p4__colonne[disabled] { opacity: 0.25; cursor: not-allowed; }
+
+.p4__etat { text-align: center; font-size: 0.9375rem; }
+.p4__joueurs { display: flex; justify-content: center; gap: 1.5rem; font-size: 0.8125rem; }
+.p4__joueur { display: flex; align-items: center; gap: 0.375rem; color: var(--texte-attenue); }
+.p4__jeton { width: 0.75rem; height: 0.75rem; border-radius: 50%; }
+.p4__jeton--j1 { background: var(--primaire); }
+.p4__jeton--j2 { background: var(--accent); }
+.p4__joueur--tour { color: var(--texte); font-weight: 600; }
+
+/* ---- Profil : photo ----------------------------------------------------- */
+
+.profil-photo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.profil-photo__actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+/* ---- Code d'invitation --------------------------------------------------- */
+
+.code-invitation {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: color-mix(in oklch, var(--secondaire) 45%, transparent);
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 0.875rem;
+}
+.code-invitation code { flex: 1; min-width: 0; overflow-x: auto; }
+
+/* ---- Choix du thème ------------------------------------------------------ */
+
+.liste-themes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.choix-theme {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  width: 100%;
+  padding: 0.625rem;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  text-align: left;
+  transition: border-color var(--duree-courte), background-color var(--duree-courte);
+}
+.choix-theme:hover { background: color-mix(in oklch, var(--secondaire) 60%, transparent); }
+
+.choix-theme[aria-pressed='true'] {
+  border-color: var(--primaire);
+  background: color-mix(in oklch, var(--primaire) 12%, transparent);
+}
+
+.choix-theme__texte { flex: 1; min-width: 0; }
+.choix-theme__texte strong { display: block; font-size: 0.875rem; font-weight: 600; }
+.choix-theme__texte small { display: block; font-size: 0.75rem; color: var(--texte-attenue); }
+
+/*
+ * Aperçu : trois bandes peintes avec les jetons du thème représenté.
+ *
+ * L'élément porte son propre `data-theme`, donc il se peint tout seul. Aucune
+ * couleur n'est recopiée ici : modifier un thème met l'aperçu à jour sans
+ * qu'on ait à y toucher.
+ */
+.apercu-theme {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2px;
+  width: 3.25rem;
+  height: 2.5rem;
+  padding: 3px;
+  border-radius: calc(var(--rayon) / 2);
+  background: var(--fond);
+  box-shadow: inset 0 0 0 1px var(--bordure);
+  overflow: hidden;
+}
+
+.apercu-theme__entete {
+  height: 30%;
+  border-radius: 1px;
+  background: var(--entete-fond);
+}
+.apercu-theme__moi,
+.apercu-theme__autre {
+  height: 22%;
+  border-radius: calc(var(--rayon-bulle) / 3);
+}
+.apercu-theme__moi   { width: 70%; margin-left: auto; background: var(--bulle-moi-fond); }
+.apercu-theme__autre { width: 55%; background: var(--bulle-autre-fond); }

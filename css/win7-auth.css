@@ -1,0 +1,228 @@
+/* =========================================================================
+   Connexion et inscription, dans l'habillage Windows 7
+   =========================================================================
+   S'ajoute à win7.css : même bureau, même fond, mêmes fenêtres. Seule la
+   mise en page interne change, et s'y ajoute l'écran « Bienvenue » affiché
+   entre l'authentification et la messagerie.
+   ========================================================================= */
+
+/*
+ * La fenêtre d'authentification est centrée, pas posée en haut à gauche.
+ *
+ * Sans `!important` : le sélecteur est plus spécifique que `.window.draggable`
+ * de win7.css, et ce fichier est chargé après. Surtout, un `!important` ici
+ * écraserait le `style.left` que le déplacement applique — la fenêtre sauterait
+ * d'une demi-largeur au premier clic sur sa barre de titre.
+ */
+.window.draggable.centree {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Une fois déplacée, redimensionnée ou agrandie, le centrage doit partir :
+   les coordonnées deviennent absolues et le transform décalerait tout. */
+.window.draggable.centree.deplacee,
+.window.draggable.centree.maximized { transform: none; }
+
+.identite {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0 16px;
+}
+
+/* Vignette de compte, comme sur l'écran d'ouverture de session. */
+.identite__vignette {
+  width: 72px;
+  height: 72px;
+  padding: 4px;
+  border-radius: 4px;
+  background: linear-gradient(#fff, #dfe9f5);
+  box-shadow: 0 0 0 1px #a7b7cc, 0 2px 6px rgba(0, 0, 0, .35);
+}
+.identite__vignette img { width: 100%; height: 100%; }
+
+.identite__titre {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 400;
+}
+
+.champs { display: flex; flex-direction: column; gap: 10px; }
+
+/*
+ * Libellé au-dessus du champ.
+ *
+ * `field-row-stacked` est une convention de 98.css et de XP.css ; la version
+ * de 7.css utilisée ici (v0.21) ne la définit pas. On la définit donc nous-mêmes,
+ * en gardant le nom, qui reste le plus parlant.
+ */
+.champs .field-row-stacked {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 0;
+}
+
+.champs .field-row-stacked > label { font-weight: 400; }
+.champs .field-row-stacked > input { width: 100%; }
+
+.aide7 {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: #555;
+}
+.aide7--erreur { color: #a80000; }
+.aide7--ok { color: #1a7a1a; }
+
+.actions7 {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #d8d8d8;
+}
+
+.lien-bas {
+  margin-top: 10px;
+  font-size: 11px;
+  text-align: center;
+  color: #444;
+}
+.lien-bas a { color: #0b5ea8; }
+
+/* =========================================================================
+   Écran « Bienvenue »
+   =========================================================================
+   Reprend l'ouverture de session de Windows 7 : dégradé bleu, vignette du
+   compte, nom, et un anneau de points qui tourne.
+   ========================================================================= */
+
+.bienvenue {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+
+  background:
+    radial-gradient(circle at 50% 42%, #2f7fc4 0%, #17538c 45%, #0a2c55 100%);
+  color: #fff;
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .5);
+
+  opacity: 0;
+  transition: opacity .35s ease-out;
+}
+
+.bienvenue[hidden] { display: none !important; }
+.bienvenue.visible { opacity: 1; }
+
+/*
+ * Sortie : on assombrit par-dessus, on ne rend PAS l'écran transparent.
+ *
+ * Faire baisser l'opacité de l'écran laissait réapparaître le formulaire de
+ * connexion pendant la demi-seconde précédant la bascule — on voyait la page
+ * qu'on venait de quitter. Le voile noir couvre jusqu'au changement de page.
+ */
+.bienvenue::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .45s ease-in;
+}
+
+.bienvenue.sortie::after { opacity: 1; }
+
+.bienvenue__vignette {
+  width: 96px;
+  height: 96px;
+  padding: 5px;
+  border-radius: 5px;
+  background: linear-gradient(#fff, #cfe0f2);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .7), 0 6px 22px rgba(0, 0, 0, .45);
+}
+
+/* `cover` : une photo de profil n'est pas forcément carrée, et il vaut mieux
+   la recadrer que la déformer. Les icônes SVG, elles, remplissent déjà le cadre. */
+.bienvenue__vignette img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 2px;
+}
+
+.bienvenue__nom {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 300;
+  letter-spacing: .01em;
+}
+
+.bienvenue__etat {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 300;
+  opacity: .92;
+}
+
+/* Anneau de huit points, comme le chargement de Windows 7. */
+.anneau {
+  position: relative;
+  width: 40px;
+  height: 40px;
+}
+
+.anneau span {
+  position: absolute;
+  inset: 0;
+  animation: anneau-tourne 1.4s linear infinite;
+}
+
+.anneau span::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  margin-left: -2.5px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 4px rgba(255, 255, 255, .8);
+}
+
+/* Chaque point démarre plus tard : l'ensemble donne une traîne qui tourne. */
+.anneau span:nth-child(1) { animation-delay: -0.00s; }
+.anneau span:nth-child(2) { animation-delay: -0.12s; }
+.anneau span:nth-child(3) { animation-delay: -0.24s; }
+.anneau span:nth-child(4) { animation-delay: -0.36s; }
+.anneau span:nth-child(5) { animation-delay: -0.48s; }
+.anneau span:nth-child(6) { animation-delay: -0.60s; }
+.anneau span:nth-child(7) { animation-delay: -0.72s; }
+.anneau span:nth-child(8) { animation-delay: -0.84s; }
+
+@keyframes anneau-tourne {
+  0%   { transform: rotate(0deg);   opacity: 1; }
+  80%  { transform: rotate(288deg); opacity: 0; }
+  100% { transform: rotate(360deg); opacity: 0; }
+}
+
+/*
+ * Réglage système « réduire les animations » : l'anneau ne tourne plus et
+ * l'écran ne fait plus de fondu. Il reste affiché — il informe — mais il
+ * n'impose plus de mouvement. Le script raccourcit aussi son temps d'affichage.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .anneau span { animation: none; opacity: 1; }
+  .bienvenue, .bienvenue.sortie { transition: none; }
+}

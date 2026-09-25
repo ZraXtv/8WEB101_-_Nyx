@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Sport">
+  <defs>
+    <linearGradient id="t-or" x1="0" y1="0" x2=".6" y2="1"><stop offset="0" stop-color="#fff1bc"/><stop offset=".42" stop-color="#f0c94e"/><stop offset=".42" stop-color="#d1a11f"/><stop offset="1" stop-color="#ffe391"/></linearGradient>
+  </defs>
+  <ellipse cx="24" cy="43" rx="13" ry="2.6" fill="#000" opacity=".16"/>
+  <g stroke="#8a6410" stroke-width="1.1" stroke-linejoin="round">
+    <path d="M14 5h20v10a10 10 0 0 1-20 0z" fill="url(#t-or)"/>
+    <path d="M14 8H9a5 5 0 0 0 5 8zM34 8h5a5 5 0 0 1-5 8z" fill="url(#t-or)"/>
+    <path d="M21 25h6v6h-6z" fill="url(#t-or)"/>
+    <path d="M14 31h20v5H14z" fill="url(#t-or)"/>
+  </g>
+  <path d="M16 6.5h6c-1 4-1 9 0 14-4-2-6-8-6-14Z" fill="#fff" opacity=".45"/>
+</svg>

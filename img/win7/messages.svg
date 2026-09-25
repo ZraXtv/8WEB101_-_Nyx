@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Messages privés">
+  <defs>
+    <linearGradient id="m-a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".45" stop-color="#e9f2fa"/><stop offset=".45" stop-color="#cfe2f4"/><stop offset="1" stop-color="#f0f7fd"/></linearGradient>
+    <linearGradient id="m-b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe0fb"/><stop offset=".45" stop-color="#7fbdee"/><stop offset=".45" stop-color="#4f9ede"/><stop offset="1" stop-color="#98cdf3"/></linearGradient>
+  </defs>
+  <ellipse cx="24" cy="43" rx="15" ry="2.8" fill="#000" opacity=".16"/>
+  <path d="M6 7h26a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H18l-8 6v-6H6a3 3 0 0 1-3-3V10a3 3 0 0 1 3-3Z" fill="url(#m-a)" stroke="#6f8ba5" stroke-width="1" stroke-linejoin="round"/>
+  <path d="M18 19h24a3 3 0 0 1 3 3v11a3 3 0 0 1-3 3h-3v6l-8-6H18a3 3 0 0 1-3-3V22a3 3 0 0 1 3-3Z" fill="url(#m-b)" stroke="#2f6da0" stroke-width="1" stroke-linejoin="round"/>
+  <g fill="#fff" opacity=".75"><rect x="20" y="25" width="20" height="2" rx="1"/><rect x="20" y="30" width="13" height="2" rx="1"/></g>
+</svg>

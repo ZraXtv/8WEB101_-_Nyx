@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Créer un compte">
+  <defs>
+    <linearGradient id="nu-tete" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eaf4fd"/><stop offset=".5" stop-color="#b6d9f4"/>
+      <stop offset=".5" stop-color="#8dc0e8"/><stop offset="1" stop-color="#c9e4f8"/>
+    </linearGradient>
+    <linearGradient id="nu-corps" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7fb4e0"/><stop offset=".45" stop-color="#4b8cc4"/>
+      <stop offset=".45" stop-color="#3a78b0"/><stop offset="1" stop-color="#6ea8d8"/>
+    </linearGradient>
+    <linearGradient id="nu-plus" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b6ee8a"/><stop offset=".5" stop-color="#5fbf3b"/>
+      <stop offset=".5" stop-color="#3f9b24"/><stop offset="1" stop-color="#8ad85f"/>
+    </linearGradient>
+  </defs>
+
+  <ellipse cx="24" cy="43" rx="15" ry="3" fill="#000" opacity=".16"/>
+
+  <circle cx="21" cy="14" r="8.5" fill="url(#nu-tete)" stroke="#4a7fae" stroke-width="1"/>
+  <path d="M21 8.5a5.5 5.5 0 0 1 5.2 3.7A7.6 7.6 0 0 0 21 10a7.6 7.6 0 0 0-5.2 2.2A5.5 5.5 0 0 1 21 8.5Z"
+        fill="#fff" opacity=".55"/>
+
+  <path d="M5.5 39c0-8.3 7-13.5 15.5-13.5S36.5 30.7 36.5 39Z"
+        fill="url(#nu-corps)" stroke="#2f6494" stroke-width="1" stroke-linejoin="round"/>
+  <path d="M8.5 37c1.2-5.6 6.4-9 12.5-9s11.3 3.4 12.5 9Z" fill="#fff" opacity=".2"/>
+
+  <circle cx="37" cy="35" r="9.5" fill="url(#nu-plus)" stroke="#2c7a18" stroke-width="1"/>
+  <path d="M37 27.5a7.5 7.5 0 0 1 6.9 4.6A9 9 0 0 0 37 29a9 9 0 0 0-6.9 3.1A7.5 7.5 0 0 1 37 27.5Z"
+        fill="#fff" opacity=".45"/>
+  <path d="M35.6 30.4h2.8v3.2h3.2v2.8h-3.2v3.2h-2.8v-3.2h-3.2v-2.8h3.2z" fill="#fff"/>
+</svg>

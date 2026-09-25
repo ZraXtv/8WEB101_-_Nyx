@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Créer un compte — Nyx</title>
+<meta name="theme-color" content="#141924">
+<link rel="icon" href="img/icone.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/polices.css">
+<link rel="stylesheet" href="css/themes.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/auth.css">
+</head>
+<body class="page-auth">
+
+<main class="boite-auth">
+  <a class="boite-auth__marque" href="index-sombre.html">
+    <img src="img/icone.svg" alt="" width="32" height="32" style="border-radius:.5rem">
+    Nyx
+  </a>
+
+  <div class="boite-auth__carte">
+    <h1 class="boite-auth__titre">Créer un compte</h1>
+    <p class="boite-auth__intro">Ton serveur t’attend de l’autre côté.</p>
+
+    <form class="formulaire" id="formulaire" novalidate>
+      <div>
+        <label class="etiquette" for="pseudo">Pseudo</label>
+        <input class="champ" id="pseudo" name="pseudo" type="text"
+               autocomplete="username" required placeholder="mon_pseudo"
+               pattern="[a-z0-9_]{3,32}">
+        <p class="aide">Minuscules, chiffres et underscore. De 3 à 32 caractères.</p>
+      </div>
+
+      <div>
+        <label class="etiquette" for="nom">Nom affiché</label>
+        <input class="champ" id="nom" name="nom" type="text"
+               autocomplete="nickname" placeholder="Mon Pseudo" maxlength="48">
+        <p class="aide">Facultatif : ton pseudo sera utilisé si tu le laisses vide.</p>
+      </div>
+
+      <div>
+        <label class="etiquette" for="email">Adresse e-mail</label>
+        <input class="champ" id="email" name="email" type="email"
+               autocomplete="email" required placeholder="toi@exemple.fr">
+      </div>
+
+      <div>
+        <label class="etiquette" for="mdp">Mot de passe</label>
+        <input class="champ" id="mdp" name="mdp" type="password"
+               autocomplete="new-password" required placeholder="••••••••••••">
+        <p class="aide" id="aide-mdp">
+          Au moins 12 caractères, combinant 3 types parmi minuscules, majuscules,
+          chiffres et caractères spéciaux.
+        </p>
+      </div>
+
+      <p class="alerte" id="message" role="alert" hidden></p>
+
+      <button class="bouton bouton--primaire" type="submit" id="valider">Créer mon compte</button>
+    </form>
+
+    <p class="boite-auth__bas">
+      Déjà inscrit ? <a href="connexion-sombre.html">Se connecter</a>
+    </p>
+  </div>
+
+  <a class="retour" href="index-sombre.html">← Retour au site</a>
+</main>
+
+<script src="vendor/supabase.js"></script>
+<script src="config.js"></script>
+<script type="module">
+  import { inscription, redirigeSiConnecte, validerMotDePasse } from './js/auth.js'
+  import { $, alerte } from './js/util.js'
+
+  await redirigeSiConnecte()
+
+  const formulaire = $('#formulaire')
+  const message = $('#message')
+  const valider = $('#valider')
+  const champMdp = $('#mdp')
+  const aideMdp = $('#aide-mdp')
+
+  /* Retour immédiat sur la force du mot de passe, avant l'envoi. */
+  champMdp.addEventListener('input', () => {
+    if (!champMdp.value) {
+      aideMdp.style.color = ''
+      return
+    }
+    const probleme = validerMotDePasse(champMdp.value)
+    aideMdp.style.color = probleme ? 'var(--danger)' : 'var(--succes)'
+  })
+
+  formulaire.addEventListener('submit', async (evenement) => {
+    evenement.preventDefault()
+    alerte(message, null)
+    valider.disabled = true
+    valider.textContent = 'Création…'
+
+    const { erreur, avis } = await inscription({
+      email: $('#email').value.trim(),
+      motDePasse: champMdp.value,
+      pseudo: $('#pseudo').value.trim().toLowerCase(),
+      nomAffiche: $('#nom').value.trim(),
+    })
+
+    if (erreur) {
+      alerte(message, erreur)
+      valider.disabled = false
+      valider.textContent = 'Créer mon compte'
+      return
+    }
+
+    if (avis) {
+      // Confirmation par e-mail activée : aucune session n'a été ouverte.
+      alerte(message, avis, 'succes')
+      formulaire.reset()
+      valider.disabled = false
+      valider.textContent = 'Créer mon compte'
+      return
+    }
+
+    location.replace('app.html')
+  })
+</script>
+</body>
+</html>

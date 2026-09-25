@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Compte">
+  <defs>
+    <linearGradient id="u-tete" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eaf4fd"/><stop offset=".5" stop-color="#b6d9f4"/>
+      <stop offset=".5" stop-color="#8dc0e8"/><stop offset="1" stop-color="#c9e4f8"/>
+    </linearGradient>
+    <linearGradient id="u-corps" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7fb4e0"/><stop offset=".45" stop-color="#4b8cc4"/>
+      <stop offset=".45" stop-color="#3a78b0"/><stop offset="1" stop-color="#6ea8d8"/>
+    </linearGradient>
+  </defs>
+
+  <ellipse cx="24" cy="43.5" rx="15" ry="2.8" fill="#000" opacity=".15"/>
+
+  <circle cx="24" cy="15" r="9" fill="url(#u-tete)" stroke="#4a7fae" stroke-width="1"/>
+  <path d="M24 9a5.9 5.9 0 0 1 5.5 3.9A8.1 8.1 0 0 0 24 10.6a8.1 8.1 0 0 0-5.5 2.3A5.9 5.9 0 0 1 24 9Z"
+        fill="#fff" opacity=".55"/>
+
+  <path d="M6.5 41c0-9 7.8-14.5 17.5-14.5S41.5 32 41.5 41Z"
+        fill="url(#u-corps)" stroke="#2f6494" stroke-width="1" stroke-linejoin="round"/>
+  <path d="M9.8 38.8C11.1 32.7 17 29 24 29s12.9 3.7 14.2 9.8Z" fill="#fff" opacity=".2"/>
+</svg>
