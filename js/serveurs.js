@@ -89,9 +89,14 @@ export function dessiner() {
     return
   }
 
-  const peutGerer = serveur.monRole === 'owner' || serveur.monRole === 'admin'
-  const estProprietaire = serveur.monRole === 'owner'
-  sousTitre.textContent = `${serveur.name} — tu es ${ROLES[serveur.monRole].toLowerCase()}.`
+  // PROTECTION LOBBY : On identifie si c'est le serveur public
+  const estLobby = serveur.name === 'Lobby Général'
+  const peutGerer = (serveur.monRole === 'owner' || serveur.monRole === 'admin') && !estLobby
+  const estProprietaire = serveur.monRole === 'owner' && !estLobby
+  
+  sousTitre.textContent = estLobby 
+    ? `${serveur.name} — Salon public communautaire.` 
+    : `${serveur.name} — tu es ${ROLES[serveur.monRole].toLowerCase()}.`
 
   if (messageGestion) {
     corps.append(el('p', {
@@ -122,42 +127,42 @@ export function dessiner() {
       }, champ, el('button', { class: 'bouton bouton--primaire', type: 'submit', style: { flex: 'none' } }, 'Renommer'))))
   }
 
-  /* -- Code d'invitation -- */
-  const bloc = el('section', { class: 'sous-section' },
-    el('p', { class: 'titre-section' }, 'Code d’invitation'))
+  /* -- Code d'invitation (Masqué pour le Lobby) -- */
+  if (!estLobby) {
+    const bloc = el('section', { class: 'sous-section' },
+      el('p', { class: 'titre-section' }, 'Code d’invitation'))
 
-  const boite = el('div', { class: 'code-invitation' },
-    el('code', {}, serveur.invite_code ?? '—'),
-    el('button', {
-      class: 'bouton-icone', type: 'button', title: 'Copier', 'aria-label': 'Copier le code',
-      onclick: async () => {
-        try {
-          await navigator.clipboard.writeText(serveur.invite_code ?? '')
-          messageGestion = { texte: 'Code copié.', ton: 'succes' }
-        } catch {
-          // Presse-papiers refusé (page non sécurisée, permission) : on le dit
-          // plutôt que de laisser croire que ça a marché.
-          messageGestion = { texte: 'Copie impossible : sélectionne le code à la main.', ton: 'erreur' }
-        }
-        dessiner()
-      },
-    }, '⧉'))
+    const boite = el('div', { class: 'code-invitation' },
+      el('code', {}, serveur.invite_code ?? '—'),
+      el('button', {
+        class: 'bouton-icone', type: 'button', title: 'Copier', 'aria-label': 'Copier le code',
+        onclick: async () => {
+          try {
+            await navigator.clipboard.writeText(serveur.invite_code ?? '')
+            messageGestion = { texte: 'Code copié.', ton: 'succes' }
+          } catch {
+            messageGestion = { texte: 'Copie impossible : sélectionne le code à la main.', ton: 'erreur' }
+          }
+          dessiner()
+        },
+      }, '⧉'))
 
-  bloc.append(boite, el('p', { class: 'aide' },
-    'Partage-le avec qui tu veux. Renouvelle-le si l’ancien a trop circulé.'))
+    bloc.append(boite, el('p', { class: 'aide' },
+      'Partage-le avec qui tu veux. Renouvelle-le si l’ancien a trop circulé.'))
 
-  if (peutGerer) {
-    bloc.append(el('button', {
-      class: 'bouton bouton--discret', type: 'button',
-      style: { marginTop: '.5rem', minHeight: '2.25rem', fontSize: '.8125rem' },
-      onclick: () => void agir(
-        sb.rpc('regenerate_invite_code', { p_server_id: serveur.id }),
-        'Nouveau code généré. L’ancien ne fonctionne plus.',
-      ),
-    }, 'Renouveler le code'))
+    if (peutGerer) {
+      bloc.append(el('button', {
+        class: 'bouton bouton--discret', type: 'button',
+        style: { marginTop: '.5rem', minHeight: '2.25rem', fontSize: '.8125rem' },
+        onclick: () => void agir(
+          sb.rpc('regenerate_invite_code', { p_server_id: serveur.id }),
+          'Nouveau code généré. L’ancien ne fonctionne plus.',
+        ),
+      }, 'Renouveler le code'))
+    }
+
+    corps.append(bloc)
   }
-
-  corps.append(bloc)
 
   /* -- Membres -- */
   const liste = el('ul', { class: 'liste-nue' })
@@ -165,7 +170,7 @@ export function dessiner() {
   for (const membre of serveur.membres) {
     const actions = el('span', { class: 'ligne__actions' })
 
-    // Seul le propriétaire attribue les rôles, et jamais le sien.
+    // Seul le propriétaire attribue les rôles (Désactivé pour le Lobby)
     if (estProprietaire && membre.role !== 'owner') {
       const choix = el('select', {
         class: 'champ',
@@ -189,12 +194,10 @@ export function dessiner() {
         ROLES[membre.role]))
     }
 
-    // On peut s'exclure soi-même (quitter) ou exclure quelqu'un si on gère.
-    // La ligne du propriétaire est intouchable : sans ça, un administrateur
-    // pourrait l'évincer, ou le propriétaire partir en laissant le serveur
-    // sans responsable.
+    // Protection pour empêcher de quitter ou d'exclure du Lobby Général
     const peutRetirer = membre.role !== 'owner'
       && (membre.profileId === etat.moiId || peutGerer)
+      && !estLobby
 
     if (peutRetirer) {
       actions.append(el('button', {
