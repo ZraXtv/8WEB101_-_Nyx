@@ -16,6 +16,7 @@ import * as amis from './amis.js'
 import * as serveurs from './serveurs.js'
 import * as profil from './profil.js'
 import * as sport from './sport.js'
+import * as paris from './paris.js'
 import * as jeu from './puissance4.js'
 import { dessinerFil } from './vue-messages.js'
 import { matchEnLigne, matchEmpile } from './vue-scores.js'
@@ -59,6 +60,7 @@ async function demarrer() {
   amis.brancher()
   profil.brancher()
   sport.brancher()
+  paris.brancher()
 
   dessinerMenu()
   await ouvrirFil(etat.source)
@@ -66,6 +68,9 @@ async function demarrer() {
   await presence.demarrer()
   await sport.chargerCatalogue()
   sport.demarrerScores()
+
+  // Sans la migration 0013, l'entrée « Paris » reste simplement cachée.
+  void paris.chargerPortefeuille()
 }
 
 
@@ -359,6 +364,7 @@ function brancherInterface() {
   $('#ouvrir-profil').addEventListener('click', () => { profil.ouvrir(); ouvrirModale('#modale-profil') })
   $('#ouvrir-amis').addEventListener('click', () => { amis.dessiner(); ouvrirModale('#modale-amis') })
   $('#ouvrir-sport').addEventListener('click', () => { void sport.ouvrirFenetre(); ouvrirModale('#modale-sport') })
+  $('#ouvrir-paris').addEventListener('click', () => { void paris.ouvrirFenetre(); ouvrirModale('#modale-paris') })
   $('#gerer-serveur').addEventListener('click', () => { serveurs.ouvrir(); ouvrirModale('#modale-serveur') })
   $('#ouvrir-jeu').addEventListener('click', () => { jeu.dessiner(); ouvrirModale('#modale-jeu') })
   $('#ouvrir-apparence').addEventListener('click', () => {
@@ -491,6 +497,12 @@ ecoute('ouvrir-fil', (source) => {
 })
 
 ecoute('scores', dessinerEncart)
+
+// Solde en pastille dans le menu ; l'entrée n'apparaît qu'une fois les paris disponibles.
+ecoute('points', (portefeuille) => {
+  $('#ouvrir-paris').hidden = !portefeuille
+  $('#solde-menu').textContent = portefeuille ? portefeuille.solde.toLocaleString('fr-FR') : ''
+})
 ecoute('equipes-changees', () => void sport.releverScores())
 
 /* ======================= Mise en route ======================= */

@@ -35,8 +35,12 @@ l'affaire (`npx serve`, l'extension *Live Server* de VS Code, Apache…).
 **3. La base de données**
 
 C'est la **même** que celle de la version Next : mêmes tables, mêmes règles,
-mêmes fonctions. Les douze migrations de `jeans-platform/supabase/migrations/`
+mêmes fonctions. Les migrations de `jeans-platform/supabase/migrations/`
 doivent être exécutées. Si c'est déjà fait, il n'y a rien à refaire.
+
+La treizième, `0013_paris.sql`, demande trois préparatifs, détaillés pas à
+pas dans [`migration/LISEZMOI.md`](migration/LISEZMOI.md). Tant qu'elle n'est pas exécutée, l'entrée « Paris » reste cachée
+et le reste de l'application fonctionne normalement.
 
 ---
 
@@ -80,6 +84,8 @@ Refonte/
 │   ├── profil.js        photo, pseudo, nom affiché
 │   ├── sport.js         choix des équipes et relevé des scores
 │   ├── fournisseur-sport.js  accès à TheSportsDB, avec cache
+│   ├── paris.js         paris en points : données, actions, fenêtre classique
+│   ├── paris-win7.js    paris : fenêtre d'application du bureau Windows 7
 │   ├── puissance4.js    le jeu
 │   ├── app.js           assemblage — disposition classique
 │   ├── app-win7.js      assemblage — disposition bureau
@@ -144,11 +150,129 @@ le navigateur, et c'était déjà le cas dans la version Next
 
 ### Ce qui a été corrigé au passage
 
+- **La taille des avatars était ignorée partout.** `el()` affectait les
+  styles avec `Object.assign`, que le navigateur ignore sans rien dire pour
+  les variables CSS comme `--taille`. Tous les avatars s'affichaient donc à
+  36 px, quelle que soit la taille demandée : la photo du profil, les
+  messages, les classements. Les variables passent maintenant par
+  `setProperty`.
+
 La vitrine ne dépend plus de jQuery ni de `webflow.js` : les animations
 d'apparition tiennent en quinze lignes d'`IntersectionObserver`, et sans
 JavaScript toute la page reste lisible. Elle présente aussi les amis, les
 messages privés, le Puissance 4 et le suivi sportif, que l'ancienne version
 passait sous silence.
+
+---
+
+## Paris
+
+On mise des **points gratuits** sur les prochains matchs de football, à de
+vraies cotes : la moyenne des bookmakers européens, pour le résultat à
+90 minutes (1, N ou 2). Un pari gagné rapporte mise × cote ; un match jamais
+joué est remboursé. Chacun a un solde unique sur tout Nyx et un classement
+général.
+
+**D'où viennent les points.** 1 000 à l'ouverture du compte, 50 par jour avec
+le bonus quotidien, et un filet de sécurité : si le solde est sous 100, le
+bonus le remonte à 100. Personne ne reste exclu après une série de pertes.
+
+**La règle qui ne se discute pas : aucun argent réel.** Les points ne
+s'achètent pas et ne se revendent pas. Dès qu'on pourrait en acheter avec
+des euros, ces paris deviendraient des jeux d'argent, interdits sans agrément
+de l'ANJ. La future boutique vendra des avantages **contre** des points,
+jamais **des** points.
+
+**Le navigateur ne décide de rien.** Il ne peut écrire dans aucune table des
+paris : miser, prendre le bonus ou être payé passent par des fonctions en
+base, qui vérifient elles-mêmes le solde, l'heure du coup d'envoi (celle de
+la base, pas celle du navigateur) et la cote. Sinon, n'importe qui se
+créditerait un million de points depuis la console. C'est aussi pour ça que
+les cotes et les résultats ne viennent pas du navigateur : c'est **la base**
+qui les récupère, avec `pg_net` et `pg_cron`.
+
+**Chaque point est tracé.** Chaque bonus, mise, gain ou remboursement laisse
+une ligne dans `point_ledger`, et la somme de ces lignes égale toujours le
+solde. La boutique n'aura qu'à ajouter des lignes de type « achat » : rien à
+refaire.
+
+### Sur le bureau Windows 7
+
+Les paris y ont leur **propre fenêtre d'application**, et non une boîte de
+dialogue : barre de menus (Paris, Affichage, ?), bandeau du solde, onglets,
+matchs en vue détaillée groupés par championnat comme dans l'explorateur,
+bulletin de pari en cadre groupé avec un curseur de mise, barre d'état, et une
+boîte « À propos des paris ». Tout vient de 7.css.
+
+Les deux dispositions partagent les mêmes données et les mêmes actions
+(`paris.js`) ; seul l'affichage diffère (`paris-win7.js` pour le bureau).
+
+**La vue se resserre selon la largeur de la fenêtre, pas de l'écran.** Sous
+520 px, la colonne Date disparaît et les équipes passent l'une sous l'autre :
+sur téléphone, mais aussi sur ordinateur quand on rétrécit la fenêtre.
+
+Deux pièges rencontrés, à connaître si tu y retouches :
+
+- **`base.css` neutralise les boutons de 7.css.** Il remet
+  `button { background: none; border: none }` et, chargé après 7.css, il
+  l'emporte. Les boutons de la fenêtre portent donc la classe `b7`, qui leur
+  rend leur cadre.
+- **La classe `can-hover` de 7.css** ouvre les menus au simple survol, et un
+  menu restait alors déroulé sous la souris après le clic. Elle n'est pas
+  utilisée.
+
+### Mise en route
+
+1. **Activer `pg_net` et `pg_cron`** : Dashboard → Database → Extensions.
+2. **Créer un compte gratuit** sur <https://the-odds-api.com>, puis ranger la
+   clé dans le coffre de Supabase depuis le SQL Editor :
+   ```sql
+   select vault.create_secret('TA_CLE', 'odds_api_key');
+   ```
+   Elle reste dans la base : ni dans le navigateur, ni dans le dépôt.
+3. **Exécuter `0013_paris.sql`.**
+4. **Lancer un premier relevé** sans attendre le lendemain matin :
+   ```sql
+   select paris_prive.demander_cotes();
+   ```
+   Les matchs apparaissent dans les cinq minutes.
+
+### Le budget d'appels
+
+L'offre gratuite de The Odds API donne **500 crédits par mois**. La base les
+dépense ainsi (heures UTC) :
+
+| Quand | Quoi | Coût |
+|---|---|---|
+| 06:00 | cotes de chaque championnat actif | 1 crédit chacun |
+| 17:30 et 22:30 | résultats, **seulement** s'il y a un match à régler | 2 crédits par championnat |
+| toutes les 5 min | lecture des réponses reçues | gratuit |
+| 04:00 | remboursement des matchs jamais réglés | gratuit |
+
+Quatre championnats actifs (Ligue 1, Ligue des champions, Premier League,
+La Liga) coûtent environ 330 crédits par mois. Serie A, Bundesliga, Ligue
+Europa et Ligue 2 sont présentes mais désactivées : on les échange dans la
+table `bet_leagues`, colonne `enabled`, depuis le Table Editor. En activer
+davantage dépasserait le budget.
+
+Deux garde-fous : sous 60 crédits restants, la base arrête de demander des
+cotes pour garder de quoi **régler** les paris déjà pris ; sous 4, elle
+s'arrête tout à fait. Les crédits restants se lisent avec
+`select * from paris_prive.quota;` et l'historique des appels avec
+`select * from paris_prive.requetes order by created_at desc;`.
+
+### Limites connues
+
+- **Règlement jusqu'à quelques heures après le match.** Les résultats sont
+  relevés deux fois par jour, pas en direct : c'est le prix du budget gratuit.
+- **Matchs à élimination directe.** Si l'API renvoie le score après
+  prolongation, un match nul à 90 minutes serait réglé sur le score final.
+  Aucun cas réel n'a été observé ; en championnat, la question ne se pose pas.
+- **Trois jours pour régler.** L'API ne donne pas de résultat plus ancien : un
+  match non réglé trois jours et six heures après son coup d'envoi est
+  annulé, et ses mises remboursées.
+- **Cotes en anglais.** Les noms d'équipes viennent de l'API (« Bayern
+  Munich », « Inter Milan »).
 
 ---
 
@@ -315,5 +439,15 @@ accusés, les quatre fenêtres, le Puissance 4 et l'affichage mobile.
 ni le temps réel entre deux personnes, ni la frappe, ni l'évolution des
 accusés de lecture en conditions réelles. Le code est repris de la version
 Next, qui fonctionnait, mais cette vérification-là reste à faire.
+
+**Les paris** ont été validés sur un Postgres 16 jetable, avec un vrai
+PostgREST (le serveur d'API de Supabase) : capital, bonus, filet, mises,
+refus (solde, minimum, cote périmée, match commencé, second pari), règlement,
+remboursement, garde-fou de quota, écritures directes refusées, et deux mises
+simultanées sur le même solde. `pg_net`, `pg_cron` et le coffre y étaient
+**imités**. Depuis, le relevé des **cotes** a été vérifié sur le vrai projet :
+les matchs et leurs cotes arrivent bien. Le **règlement** en conditions
+réelles (relevé des résultats, paiement des gains) reste à observer après les
+premiers matchs pariés, dans `paris_prive.requetes` (lignes « scores »).
 
 La suppression de compte n'existe pas davantage que dans la version Next.

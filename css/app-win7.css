@@ -398,3 +398,248 @@ body { overflow: hidden; }
   box-shadow: inset 0 0 0 1px #9db6cd;
 }
 .explorateur .icone-serveur span { font-size: 16px; color: #3d5c7a; }
+
+/* ======================= Paris ======================= */
+
+/*
+ * Une fenêtre d'application Windows 7 : barre de menus, bandeau, onglets,
+ * vue détaillée et barre d'état. La colonne est figée en haut et en bas ;
+ * seule la liste défile.
+ */
+.window-body.paris7 {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  background: var(--w7-surface, #f0f0f0);
+  color: #1b1b1b;
+}
+
+.paris7__menus { flex: 0 0 auto; margin: 0; padding: 0 2px; list-style: none; border-bottom: 1px solid #d9dfe8; }
+.paris7__menus > [role='menuitem'] { cursor: default; user-select: none; }
+.paris7__menus ul[role='menu'] { margin: 0; list-style: none; }
+.paris7__menus button[disabled] { color: #8d8d8d; pointer-events: none; }
+.paris7__coche { position: absolute; left: 12px; width: 12px; text-align: center; }
+.paris7__menus [aria-checked='true'] .paris7__coche::before { content: '✓'; }
+
+/* Bandeau du solde, dans l'esprit des en-têtes du Panneau de configuration. */
+.paris7__bandeau {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #cfdbe6;
+  background: linear-gradient(to bottom, #fdfeff 0%, #eef4fb 55%, #e3ecf7 100%);
+}
+.paris7__bandeau img { flex: none; filter: drop-shadow(0 1px 1px #0002); }
+.paris7__solde { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+.paris7__solde span { color: #5b6b7c; font-size: 11px; }
+.paris7__solde strong {
+  color: #1e395b;
+  font-size: 19px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.2px;
+}
+.paris7__bonus-pris {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 5px;
+  color: #2c4f1f;
+}
+.paris7__bonus-pris small { grid-column: 2; color: #6b7785; }
+
+.paris7__contenu {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  padding: 8px 10px 0;
+}
+
+/* Barre d'information, façon Windows : pâle, une icône, un bouton fermer. */
+.paris7__info {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 5px 6px 5px 8px;
+  border: 1px solid #d9c778;
+  border-radius: 3px;
+  background: linear-gradient(to bottom, #fffff2, #fff6c9);
+}
+.paris7__info--succes { border-color: #9fcf8b; background: linear-gradient(to bottom, #f6fff2, #e2f5d8); }
+.paris7__info--erreur { border-color: #e2a39e; background: linear-gradient(to bottom, #fff7f6, #fde3e0); }
+.paris7__info > span { flex: 1; }
+.paris7__info svg { flex: none; }
+.window .paris7__info-fermer {
+  min-width: 0; min-height: 0; width: 18px; height: 18px; padding: 0;
+  border: 1px solid transparent; background: none; box-shadow: none;
+  color: #555; font-size: 14px; line-height: 1;
+}
+.window .paris7__info-fermer:hover { border-color: #b9c6d3; background: #fff8; }
+
+.paris7 menu[role='tablist'] { flex: 0 0 auto; }
+
+.paris7__panneau.paris7__panneau {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  margin-bottom: 8px;
+  padding: 10px;
+}
+.paris7__volet { display: flex; flex: 1 1 auto; flex-direction: column; gap: 8px; min-height: 0; }
+
+.paris7__outils { display: flex; flex: 0 0 auto; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.paris7__outils label { display: flex; align-items: center; gap: 6px; }
+.paris7__outils select { min-width: 170px; }
+.paris7__outils .searchbox { position: relative; width: 200px; }
+.paris7__outils .searchbox input { width: 100%; }
+
+/* Vue détaillée : la liste défile, l'en-tête reste collé (7.css). */
+.paris7__liste {
+  flex: 1 1 auto;
+  min-height: 90px;
+  overflow: auto;
+  border: 1px solid #c0c1cd;
+  background: #fff;
+}
+.paris7__table { width: 100%; border: 0; }
+/* En tableau fusionné, l'en-tête collant de 7.css laisse 1 px au-dessus de
+   lui : on voyait le haut des lignes défiler dans cet interstice. */
+.paris7__table > thead > tr > * { top: -1px; box-shadow: 0 -1px 0 #fff; }
+.paris7__table > tbody > tr:not(.paris7__groupe):not(.highlighted):hover {
+  background: linear-gradient(#fafdff, #eef6fd);
+}
+.paris7__table td { vertical-align: middle; }
+.paris7__centre { text-align: center !important; }
+.paris7__droite { text-align: right !important; font-variant-numeric: tabular-nums; }
+.paris7__vide { padding: 18px 8px !important; color: #6b7785; text-align: center !important; white-space: normal !important; }
+
+/* Groupes, comme ceux de l'explorateur : titre bleu, filet dégradé. */
+.paris7__groupe td {
+  height: auto !important;
+  padding: 10px 8px 3px !important;
+  border-right: 0 !important;
+  background: linear-gradient(to right, #b7cde5, #fff0) no-repeat left bottom / 100% 1px;
+  color: #1e395b;
+}
+.paris7__groupe small { color: #6b7785; }
+
+.paris7__pris td { color: #5f6b77; }
+.paris7__pris svg { vertical-align: -2px; }
+
+/*
+ * Boutons de la fenêtre. 7.css leur donne un cadre et un dégradé, mais
+ * base.css, chargé après, remet `button { background: none; border: none }` :
+ * sans cette classe, « Annuler » ou « 10 / 50 / 100 » n'avaient plus l'air de
+ * boutons. Le survol, le focus et l'état désactivé restent ceux de 7.css.
+ */
+.window .b7 {
+  background: var(--w7-el-grad);
+  border: 1px solid var(--w7-el-bd);
+}
+.window .b7:disabled { background: #f4f4f4; border-color: #adb2b5; }
+
+.paris7__table td.paris7__centre { padding-inline: 4px; }
+
+/* Cotes : petits boutons Aero, enfoncés quand ils sont choisis. */
+.window .paris7__cote {
+  width: 100%;
+  min-width: 0;
+  min-height: 19px;
+  padding: 0 4px;
+  font-variant-numeric: tabular-nums;
+}
+.window .paris7__cote[aria-pressed='true'] {
+  border-color: #2c628b;
+  background: linear-gradient(#e5f4fc, #c4e5f6 45%, #98d1ef 45%, #68b3db);
+  box-shadow: inset 0 1px 2px #0003;
+  font-weight: 600;
+}
+
+/* Bulletin de pari : un cadre groupé (fieldset) de 7.css. */
+.paris7__bulletin.paris7__bulletin { flex: 0 0 auto; margin: 0; }
+.paris7__consigne { display: flex; align-items: center; gap: 6px; margin: 2px 0; color: #5b6b7c; }
+.paris7__formulaire { display: flex; flex-direction: column; gap: 7px; }
+.paris7__resume { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 10px; }
+.paris7__resume strong { color: #1e395b; font-size: 12px; font-weight: 600; }
+.paris7__resume span { color: #6b7785; }
+.paris7__prono { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; }
+.paris7__ligne-mise { display: flex; align-items: center; gap: 8px; }
+.paris7__ligne-mise label { display: flex; align-items: center; gap: 6px; }
+.paris7__mise { width: 84px; }
+.paris7__curseur { flex: 1; min-width: 80px; }
+.paris7__ligne-rapide { display: flex; flex-wrap: wrap; gap: 5px; }
+.window .paris7__rapide { min-width: 56px; }
+.paris7__pied {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 10px;
+  padding-top: 7px;
+  border-top: 1px solid #dfe5ea;
+}
+.paris7__gain { color: #25731a; font-size: 12px; font-variant-numeric: tabular-nums; }
+.paris7__boutons { display: flex; gap: 6px; }
+
+.paris7__synthese { display: flex; flex: 0 0 auto; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; margin: 0; color: #4b5866; }
+.paris7__positif { color: #25731a; }
+.paris7__negatif { color: #b4271d; }
+
+.paris7__resultat { font-weight: 600; }
+.paris7__resultat::before {
+  display: inline-block;
+  width: 7px; height: 7px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  content: '';
+  vertical-align: 1px;
+}
+.paris7__resultat--succes  { color: #25731a; }
+.paris7__resultat--erreur  { color: #b4271d; }
+.paris7__resultat--info    { color: #2a64a8; }
+.paris7__resultat--attente { color: #6b7785; font-weight: 400; }
+
+.paris7__joueur { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; }
+.paris7__joueur small { color: #6b7785; }
+.paris7__joueur .avatar { flex: none; }
+
+.paris7__etat.paris7__etat { flex: 0 0 auto; margin: 0; border-left: 0; border-right: 0; border-bottom: 0; }
+.paris7__etat .status-bar-field { overflow: hidden; margin: 0; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Boîte « À propos » */
+.window-body.paris7-aide { padding: 0; overflow: hidden; }
+.paris7__aide { display: flex; gap: 14px; padding: 16px 18px 12px; background: #fff; }
+.paris7__aide img { flex: none; }
+.paris7__instruction { margin: 0 0 8px; color: #1e395b; font-size: 15px; font-weight: 400; }
+.paris7__aide ul { display: flex; flex-direction: column; gap: 5px; margin: 0; padding-left: 16px; }
+.paris7__avertissement { display: flex; align-items: flex-start; gap: 6px; margin: 12px 0 0; color: #4b5866; }
+.paris7__avertissement svg { flex: none; margin-top: 1px; }
+.paris7__aide-pied { display: flex; justify-content: flex-end; padding: 10px 12px; border-top: 1px solid #dfdfdf; }
+
+/*
+ * Vue compacte : déclenchée par la largeur de la FENÊTRE (classe posée par
+ * paris-win7.js), pas par celle de l'écran. Les équipes passent l'une sous
+ * l'autre, la date dessous.
+ */
+.paris7--compacte .paris7__outils .searchbox { width: 100%; }
+.paris7--compacte .paris7__outils label { flex: 1; }
+.paris7--compacte .paris7__outils select { flex: 1; min-width: 0; }
+.paris7--compacte .paris7__bandeau { flex-wrap: wrap; }
+.paris7--compacte .status-bar-field:last-child { display: none; }
+.paris7__table--compacte td { white-space: normal !important; }
+.paris7__table--compacte .paris7__equipe {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.paris7__quand { display: block; color: #6b7785; font-size: 11px; }
+.paris7__table--compacte .paris7__resultat { font-size: 11px; }

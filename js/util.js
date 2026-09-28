@@ -19,7 +19,15 @@ export function el(balise, attributs = {}, ...enfants) {
     if (valeur === null || valeur === undefined || valeur === false) continue
     if (cle === 'class') noeud.className = valeur
     else if (cle === 'dataset') Object.assign(noeud.dataset, valeur)
-    else if (cle === 'style') Object.assign(noeud.style, valeur)
+    else if (cle === 'style') {
+      // Les variables CSS (« --taille ») ne s'affectent pas comme les autres
+      // propriétés : Object.assign les ignore sans rien dire. Sans ce cas,
+      // tous les avatars gardaient leur taille par défaut.
+      for (const [propriete, v] of Object.entries(valeur)) {
+        if (propriete.startsWith('--')) noeud.style.setProperty(propriete, v)
+        else noeud.style[propriete] = v
+      }
+    }
     else if (cle.startsWith('on')) noeud.addEventListener(cle.slice(2).toLowerCase(), valeur)
     else if (valeur === true) noeud.setAttribute(cle, '')
     else noeud.setAttribute(cle, valeur)

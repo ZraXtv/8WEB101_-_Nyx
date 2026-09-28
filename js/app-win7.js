@@ -32,6 +32,8 @@ import * as amis from './amis.js'
 import * as serveurs from './serveurs.js'
 import * as profil from './profil.js'
 import * as sport from './sport.js'
+import * as paris from './paris.js'
+import * as parisWin7 from './paris-win7.js'
 import * as jeu from './puissance4.js'
 import { construireChoix } from './theme.js'
 
@@ -80,7 +82,7 @@ function dessinerBureau() {
 
   const demandes = etat.amis.filter((a) => a.genre === 'recue').length
 
-  conteneur.append(
+  conteneur.append(...[
     icone({
       libelle: 'Serveurs', image: 'img/win7/dossier.svg',
       onOuvrir: ouvrirExplorateur,
@@ -97,6 +99,11 @@ function dessinerBureau() {
       libelle: 'Sport', image: 'img/win7/trophee.svg',
       onOuvrir: () => { void sport.ouvrirFenetre(); ouvrirModale('#modale-sport') },
     }),
+    // Seulement si la migration 0013 a été exécutée.
+    paris.portefeuille && icone({
+      libelle: 'Paris', image: 'img/win7/jetons.svg',
+      onOuvrir: ouvrirFenetreParis,
+    }),
     icone({
       libelle: 'Mon profil', image: 'img/win7/utilisateur-cle.svg',
       onOuvrir: () => { profil.ouvrir(); ouvrirModale('#modale-profil') },
@@ -105,7 +112,8 @@ function dessinerBureau() {
       libelle: 'Apparence', image: 'img/win7/palette.svg',
       onOuvrir: () => { construireChoix($('#liste-themes')); ouvrirModale('#modale-apparence') },
     }),
-  )
+  ].filter(Boolean))
+
 
   // Les icônes doivent réagir au clic simple (sélection) : on réinstalle.
   installerIcones($('.desktop'))
@@ -205,6 +213,47 @@ function ouvrirExplorateur() {
   }
 
   dessinerExplorateur(fenetre.__corpsExplorateur)
+  fenetre.ouvrir()
+}
+
+/* ======================= Fenêtre des paris ======================= */
+
+/**
+ * Les paris ont leur propre fenêtre d'application, pas une boîte de
+ * dialogue : barre de menus, onglets, vue détaillée, barre d'état. Son
+ * contenu est dessiné par `paris-win7.js` ; ici, on ne gère que la fenêtre.
+ */
+function ouvrirFenetreParis() {
+  let fenetre = fenetres.get('paris')
+
+  if (!fenetre) {
+    const coquille = creerCoquille({
+      cle: 'paris', titre: 'Paris', icone: 'img/win7/jetons.svg', classeCorps: 'paris7',
+      style: { width: '680px', height: 'min(620px, calc(100vh - 110px))' },
+    })
+    fenetre = coquille.fenetre
+    parisWin7.installer(coquille.corps, { ouvrirAide: ouvrirAideParis })
+    rafraichirBarre()
+  }
+
+  fenetre.ouvrir()
+  void parisWin7.charger()
+}
+
+/** « À propos des paris », une petite boîte comme celles de Windows. */
+function ouvrirAideParis() {
+  let fenetre = fenetres.get('paris-aide')
+
+  if (!fenetre) {
+    const coquille = creerCoquille({
+      cle: 'paris-aide', titre: 'À propos des paris', icone: 'img/win7/jetons.svg',
+      classeCorps: 'paris7-aide', style: { width: '460px', height: 'auto' },
+    })
+    fenetre = coquille.fenetre
+    parisWin7.installerAide(coquille.corps, () => detruireFenetre('paris-aide'))
+    rafraichirBarre()
+  }
+
   fenetre.ouvrir()
 }
 
@@ -696,6 +745,7 @@ ecoute('donnees-rechargees', () => {
   // L'explorateur était-il ouvert ? Créer un serveur depuis lui ne doit pas
   // le faire disparaître sous les doigts.
   const explorateurOuvert = fenetres.has('serveurs')
+  const parisOuverts = fenetres.has('paris')
 
   // Les fenêtres reflètent l'ancien état : on repart du bureau.
   //
@@ -712,6 +762,7 @@ ecoute('donnees-rechargees', () => {
   rafraichirBarre()
 
   if (explorateurOuvert) ouvrirExplorateur()
+  if (parisOuverts) ouvrirFenetreParis()
 })
 
 ecoute('ouvrir-fil', (source) => {
@@ -746,6 +797,7 @@ async function demarrer() {
   amis.brancher()
   profil.brancher()
   sport.brancher()
+  paris.brancher()
   installerHorloge()
 
   $('#formulaire-serveur').addEventListener('submit', async (evenement) => {
@@ -777,6 +829,16 @@ async function demarrer() {
   await presence.demarrer()
   await sport.chargerCatalogue()
   sport.demarrerScores()
+  void paris.chargerPortefeuille()
 }
+
+// L'icône « Paris » n'apparaît qu'une fois les paris disponibles : on ne
+// redessine le bureau que si cette disponibilité change, pas à chaque solde.
+let parisDisponibles = false
+ecoute('points', (portefeuille) => {
+  if (Boolean(portefeuille) === parisDisponibles) return
+  parisDisponibles = Boolean(portefeuille)
+  dessinerBureau()
+})
 
 await demarrer()
