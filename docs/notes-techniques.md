@@ -176,6 +176,63 @@ s'arrête tout à fait. Les crédits restants se lisent avec
 
 ---
 
+## Lobby Général
+
+Un serveur ordinaire, que chaque compte rejoint à l'inscription : tout le
+reste de l'application (salons, messages, temps réel) fonctionne donc sans
+cas particulier. Il est **public**, ce qui permet de le rejoindre de soi-même
+après l'avoir quitté.
+
+**Il est reconnu par la colonne `is_lobby`, jamais par son nom.** La première
+version (`0014_lobby.sql`) cherchait « le serveur nommé Lobby Général ». Sur
+une base de test, deux effets ont été reproduits :
+
+- n'importe qui pouvait appeler son propre serveur « Lobby Général » ; après
+  une modification ordinaire du vrai, les nouveaux inscrits arrivaient chez
+  l'imitateur, qui voyait leur profil et leur présence ;
+- renommer le vrai Lobby faisait créer, à l'inscription suivante, un second
+  Lobby vide dont le nouvel inscrit devenait propriétaire.
+
+`0015_lobby_securise.sql` désigne le vrai Lobby (même renommé entre-temps),
+renomme les imitateurs « Ancien lobby », y réinscrit ceux qui en avaient été
+détournés, et remplace le déclencheur d'inscription. Un index unique empêche
+qu'il y ait deux lobbies.
+
+**Les protections sont dans la base, pas dans l'interface.** L'interface
+masque le code d'invitation, les rôles et l'exclusion dans le Lobby, mais ce
+n'est que de l'affichage. Le déclencheur `proteger_lobby` refuse, pour toute
+requête d'un compte connecté : renommer, supprimer, rendre privé ou
+transférer le Lobby ; déclarer un autre serveur comme lobby ; donner le nom
+« Lobby Général » à un autre serveur. Sans compte connecté — SQL Editor du
+dashboard, migrations, déclencheur d'inscription — tout reste permis : c'est
+là que le Lobby s'administre.
+
+**Une faille de 0001 corrigée au passage.** La règle « on rejoint soi-même un
+serveur public » vérifiait qui l'on inscrit, mais pas le rôle : depuis l'API,
+on pouvait entrer dans un serveur public comme administrateur, voire
+propriétaire. Sans conséquence tant qu'aucun serveur n'était public ; le
+Lobby l'est. Elle exige désormais le rôle « membre », et 0015 ramène à
+« membre » toute ligne « propriétaire » qui ne correspond pas au propriétaire
+réel du serveur.
+
+**On peut quitter le Lobby.** Partager un serveur rend visibles le profil et
+la présence en ligne : être dans le Lobby, c'est être visible de tous les
+comptes. Ce doit rester un choix. Le départ se fait depuis la fenêtre de
+gestion du Lobby ; le retour, depuis le menu (« Rejoindre le Lobby Général »)
+ou l'explorateur de serveurs sur le bureau Windows 7.
+
+**Seuls les serveurs dont on est membre sont affichés.** La base laisse voir
+aussi les serveurs publics ; auparavant ils apparaissaient dans la liste de
+tout le monde, rôle « membre » par défaut et sans aucun salon lisible.
+`donnees.js` fait maintenant le tri, et garde le Lobby quitté à part pour
+proposer d'y revenir.
+
+**Limite connue** : l'application ne permet pas encore de supprimer un
+message. Dans un salon où tout le monde est présent, un message indésirable ne
+se retire que depuis le dashboard.
+
+---
+
 ## Thèmes
 
 La messagerie se décline en **cinq thèmes**, choisis depuis « Apparence » dans

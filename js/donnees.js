@@ -14,18 +14,35 @@ import { etat } from './etat.js'
 
 const CHAMPS_PROFIL = 'id, username, display_name, avatar_url'
 
+/**
+ * Serveurs visibles. La RLS en renvoie davantage que ceux dont je suis
+ * membre : les serveurs PUBLICS aussi (le Lobby). Le tri est fait plus bas.
+ *
+ * `is_lobby` vient de la migration 0015 ; tant qu'elle n'est pas exécutée,
+ * la colonne n'existe pas et la demander ferait échouer tout le chargement.
+ * On se replie alors sur la requête d'avant.
+ */
+async function chargerServeurs() {
+  const requete = (colonnes) => sb.from('servers')
+    .select(
+      `id, name, icon_url, owner_id, is_public, ${colonnes}invite_code,`
+      + ' channels(id, server_id, name, topic, position),'
+      + ` server_members(profile_id, role, nickname, profile:profiles(${CHAMPS_PROFIL}))`,
+    )
+    .order('created_at', { ascending: true })
+    .order('position', { referencedTable: 'channels', ascending: true })
+
+  const reponse = await requete('is_lobby, ')
+  if (reponse.error?.code !== '42703') return reponse
+  console.warn('Migration 0015 non exécutée : le Lobby est traité comme un serveur ordinaire.')
+  return requete('')
+}
+
 export async function chargerTout() {
   const [profil, serveurs, amities, conversations] = await Promise.all([
     sb.from('profiles').select('*').eq('id', etat.moiId).single(),
 
-    sb.from('servers')
-      .select(
-        'id, name, icon_url, owner_id, is_public, invite_code,'
-        + ' channels(id, server_id, name, topic, position),'
-        + ` server_members(profile_id, role, nickname, profile:profiles(${CHAMPS_PROFIL}))`,
-      )
-      .order('created_at', { ascending: true })
-      .order('position', { referencedTable: 'channels', ascending: true }),
+    chargerServeurs(),
 
     sb.from('friendships')
       .select(
@@ -49,19 +66,23 @@ export async function chargerTout() {
 
   etat.moi = profil.data
 
-  etat.serveurs = (serveurs.data ?? []).map((serveur) => {
+  const visibles = (serveurs.data ?? []).map((serveur) => {
     const membres = (serveur.server_members ?? []).flatMap((m) =>
       m.profile
         ? [{ profileId: m.profile_id, role: m.role, surnom: m.nickname, profil: m.profile }]
         : [],
     )
     const { server_members, ...reste } = serveur
-    return {
-      ...reste,
-      membres,
-      monRole: server_members?.find((m) => m.profile_id === etat.moiId)?.role ?? 'member',
-    }
+    const moi = server_members?.find((m) => m.profile_id === etat.moiId)
+    return { ...reste, membres, monRole: moi?.role ?? null, estMembre: Boolean(moi) }
   })
+
+  // Seuls les serveurs dont je suis membre vont dans la liste. Avant ce tri,
+  // un serveur public apparaissait chez tout le monde, rôle « membre » par
+  // défaut et sans aucun salon lisible. Le Lobby quitté est gardé à part,
+  // pour proposer de le rejoindre.
+  etat.serveurs = visibles.filter((s) => s.estMembre)
+  etat.lobbyARejoindre = visibles.find((s) => s.is_lobby && !s.estMembre) ?? null
 
   // La RLS ne renvoie que mes relations ; reste à savoir, pour chacune, qui
   // est « l'autre » et dans quel sens elle va.

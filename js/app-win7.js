@@ -180,7 +180,15 @@ function dessinerExplorateur(corps) {
       el('button', { type: 'button', onclick: () => ouvrirModale('#modale-nouveau') },
         'Nouveau serveur'),
       el('button', { type: 'button', onclick: () => ouvrirModale('#modale-nouveau') },
-        'Rejoindre avec un code')),
+        'Rejoindre avec un code'),
+      // Seulement quand on a quitté le Lobby Général.
+      etat.lobbyARejoindre && el('button', {
+        type: 'button',
+        onclick: async () => {
+          const probleme = await serveurs.rejoindreLobby()
+          if (probleme) window.alert(probleme)
+        },
+      }, 'Rejoindre le Lobby')),
     grille,
     el('div', { class: 'status-bar' },
       el('p', { class: 'status-bar-field' },

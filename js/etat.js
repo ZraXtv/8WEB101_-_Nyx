@@ -15,6 +15,8 @@ export const etat = {
 
   /** Serveurs dont je suis membre, salons et membres imbriqués. */
   serveurs: [],
+  /** Le Lobby Général, si je l'ai quitté (pour proposer de revenir). */
+  lobbyARejoindre: null,
   /** Relations d'amitié, vues depuis moi. */
   amis: [],
   /** Conversations privées ouvertes. */

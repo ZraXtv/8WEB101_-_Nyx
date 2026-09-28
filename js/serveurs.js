@@ -54,6 +54,22 @@ export async function creerSalon(serveurId, nom) {
   return null
 }
 
+/**
+ * Revenir dans le Lobby après l'avoir quitté. La base n'accepte cette ligne
+ * que pour un serveur public et avec le rôle « membre » (migration 0015).
+ */
+export async function rejoindreLobby() {
+  const lobby = etat.lobbyARejoindre
+  if (!lobby) return null
+
+  const { error } = await sb.from('server_members')
+    .insert({ server_id: lobby.id, profile_id: etat.moiId, role: 'member' })
+  if (error) return error.message
+
+  await rafraichir()
+  return null
+}
+
 export async function rejoindreParCode(code) {
   const propre = code.trim().toLowerCase()
   if (!propre) return 'Colle le code d’invitation reçu.'
@@ -89,14 +105,16 @@ export function dessiner() {
     return
   }
 
-  // PROTECTION LOBBY : On identifie si c'est le serveur public
-  const estLobby = serveur.name === 'Lobby Général'
+  // Le Lobby est reconnu par `is_lobby` (migration 0015), jamais par son nom :
+  // n'importe qui peut appeler son propre serveur « Lobby Général ». Ces
+  // restrictions ne sont que de l'affichage ; la base les impose elle-même.
+  const estLobby = Boolean(serveur.is_lobby)
   const peutGerer = (serveur.monRole === 'owner' || serveur.monRole === 'admin') && !estLobby
   const estProprietaire = serveur.monRole === 'owner' && !estLobby
   
   sousTitre.textContent = estLobby 
     ? `${serveur.name} — Salon public communautaire.` 
-    : `${serveur.name} — tu es ${ROLES[serveur.monRole].toLowerCase()}.`
+    : `${serveur.name} — tu es ${ROLES[serveur.monRole ?? 'member'].toLowerCase()}.`
 
   if (messageGestion) {
     corps.append(el('p', {
@@ -194,10 +212,15 @@ export function dessiner() {
         ROLES[membre.role]))
     }
 
-    // Protection pour empêcher de quitter ou d'exclure du Lobby Général
+    // On peut s'exclure soi-même (quitter) ou exclure quelqu'un si on gère —
+    // dans le Lobby, personne ne gère : on ne peut que le quitter soi-même.
+    // Y rester rend son profil et sa présence visibles de tous : c'est un
+    // choix, qu'on peut défaire depuis le menu (« Rejoindre le Lobby »).
+    // La ligne du propriétaire est intouchable : sans ça, un administrateur
+    // pourrait l'évincer, ou le propriétaire partir en laissant le serveur
+    // sans responsable.
     const peutRetirer = membre.role !== 'owner'
       && (membre.profileId === etat.moiId || peutGerer)
-      && !estLobby
 
     if (peutRetirer) {
       actions.append(el('button', {
@@ -207,7 +230,9 @@ export function dessiner() {
         onclick: () => void agir(
           sb.from('server_members').delete()
             .eq('server_id', serveur.id).eq('profile_id', membre.profileId),
-          membre.profileId === etat.moiId ? 'Tu as quitté le serveur.' : 'Membre exclu.',
+          membre.profileId !== etat.moiId ? 'Membre exclu.'
+            : estLobby ? 'Tu as quitté le Lobby. Tu peux le rejoindre depuis le menu.'
+            : 'Tu as quitté le serveur.',
         ),
       }, '✕'))
     }

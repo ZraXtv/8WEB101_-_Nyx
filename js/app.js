@@ -77,6 +77,7 @@ async function demarrer() {
 /* ======================= Menu ======================= */
 
 function dessinerMenu() {
+  $('#rejoindre-lobby').hidden = !etat.lobbyARejoindre
   /* -- Identité, en pied de menu -- */
   const boite = $('#avatar-menu')
   vide(boite)
@@ -377,6 +378,13 @@ function brancherInterface() {
   basculeFormulaire('#creer-salon', '#formulaire-salon')
   basculeFormulaire('#rejoindre-serveur', '#formulaire-invitation')
 
+  $('#rejoindre-lobby').addEventListener('click', async () => {
+    const lobby = etat.lobbyARejoindre
+    const probleme = await serveurs.rejoindreLobby()
+    alerte($('#erreur-invitation'), probleme)
+    if (!probleme && lobby) choisirServeur(lobby.id)
+  })
+
   $('#formulaire-serveur').addEventListener('submit', async (evenement) => {
     evenement.preventDefault()
     const champ = evenement.target.querySelector('input')
@@ -486,6 +494,13 @@ ecoute('profil-change', () => {
 })
 
 ecoute('donnees-rechargees', () => {
+  // Serveur quitté (ou dont on a été exclu) : on n'a plus le droit d'en lire
+  // les salons. Sans ça, l'écran restait sur un fil devenu illisible.
+  if (etat.serveurId && !etat.serveurs.some((s) => s.id === etat.serveurId)) {
+    const premier = etat.serveurs[0]
+    if (premier) choisirServeur(premier.id)
+    else { etat.serveurId = null; void ouvrirFil(null) }
+  }
   dessinerMenu()
   dessinerEntete()
   dessinerEncart()

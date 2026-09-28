@@ -50,6 +50,8 @@ réel reposent sur [Supabase](https://supabase.com).
 
 - **Serveurs et salons** — trois rôles (propriétaire, administrateur, membre),
   codes d'invitation renouvelables, salons par sujet.
+- **Lobby Général** — un serveur commun que chaque compte rejoint à
+  l'inscription. On peut le quitter et le rejoindre à tout moment.
 - **Amis et messages privés** — ajout par pseudo, demandes à accepter ou
   refuser, conversations à deux.
 - **Temps réel** — messages sans rechargement, indicateur « en train
@@ -113,6 +115,10 @@ La treizième, `0013_paris.sql`, ajoute les paris. Elle demande d'activer deux
 extensions et de ranger une clé dans le coffre de Supabase : suis le guide
 [`migration/readme-migration.md`](migration/readme-migration.md). Tant qu'elle
 n'est pas exécutée, les paris restent simplement cachés.
+
+Exécute ensuite `0015_lobby_securise.sql`, qui crée le Lobby Général. Elle se
+suffit à elle-même : `0014_lobby.sql`, sa première version, n'est pas
+nécessaire, et refuse de se relancer une fois `0015` en place.
 
 ### 3. Renseigner la configuration
 
@@ -184,6 +190,11 @@ Le détail de chaque fichier est dans les [notes techniques](docs/notes-techniqu
 - **Aucun argent réel.** Les points sont gratuits : ils ne s'achètent pas et ne
   se revendent pas. Pouvoir en acheter transformerait ces paris en jeux
   d'argent, interdits sans agrément de l'ANJ.
+- **Le Lobby est protégé par la base** : on ne peut ni le renommer, ni le
+  supprimer, ni le rendre privé depuis l'application ou l'API, ni donner son
+  nom à un autre serveur, ni y entrer autrement que comme simple membre.
+  Y être rend son profil et sa présence visibles de tous les comptes : c'est
+  pourquoi on peut le quitter.
 - **Mots de passe** : au moins 12 caractères, et trois types de caractères
   parmi minuscules, majuscules, chiffres et caractères spéciaux.
 
