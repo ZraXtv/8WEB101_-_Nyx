@@ -1,7 +1,23 @@
 -- ============================================================
 -- 0014_lobby.sql
 -- Création du Lobby Général et ajout automatique des membres.
+--
+-- REMPLACÉE PAR 0015_lobby_securise.sql, qui fait la même chose sans ses
+-- failles (Lobby reconnu par son nom, protections limitées à l'interface).
+-- 0015 se suffit à elle-même : sur une nouvelle base, 0014 n'est pas utile.
 -- ============================================================
+
+-- Garde-fou : relancée APRÈS 0015, cette migration remettrait l'ancien
+-- déclencheur d'inscription (Lobby cherché par son nom) et réinscrirait de
+-- force ceux qui ont quitté le Lobby. Elle s'arrête donc ici.
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns
+              WHERE table_schema = 'public' AND table_name = 'servers' AND column_name = 'is_lobby') THEN
+    RAISE EXCEPTION '0014 est remplacée par 0015, déjà exécutée sur cette base : ne la relance pas.';
+  END IF;
+END
+$$;
 
 DO $$
 DECLARE
