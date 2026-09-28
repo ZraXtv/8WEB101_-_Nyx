@@ -531,7 +531,9 @@ body { overflow: hidden; }
 .paris7__groupe small { color: #6b7785; }
 
 .paris7__pris td { color: #5f6b77; }
-.paris7__pris svg { vertical-align: -2px; }
+/* base.css passe les SVG en bloc : dans une cellule, l'icône prenait alors
+   sa propre ligne au-dessus du texte. */
+.paris7__table svg { display: inline-block; vertical-align: -2px; }
 
 /*
  * Boutons de la fenêtre. 7.css leur donne un cadre et un dégradé, mais

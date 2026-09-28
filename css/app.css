@@ -308,7 +308,10 @@ body.app { overflow: hidden; }
   }
   .encart__ligne { display: none; }
   .encart__tableau { display: block; }
-  .encart--serveur .encart__nom { margin-top: 0.5rem; font-size: 1.125rem; }
+  /* Nom et nombre de salons sur deux lignes : en ligne, ces <span> se
+     collaient et l'on lisait « test2 salons ». */
+  .encart--serveur .encart__nom { display: block; margin-top: 0.5rem; font-size: 1.125rem; }
+  .encart--serveur .encart__compte { display: block; margin-top: 0.125rem; }
 }
 
 .match-empile + .match-empile {
