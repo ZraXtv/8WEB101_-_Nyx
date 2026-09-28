@@ -3,10 +3,8 @@
 Ce guide liste tout ce qu'il faut faire **avant** et **après** avoir ajouté
 les paris à la base Supabase. Compte une quinzaine de minutes.
 
-Le fichier à exécuter est
-[`jeans-platform/supabase/migrations/0013_paris.sql`](../../jeans-platform/supabase/migrations/0013_paris.sql).
-Il n'est pas recopié ici, pour qu'il n'en existe jamais deux versions
-différentes.
+Le fichier à exécuter est [`0013_paris.sql`](0013_paris.sql), dans ce même
+dossier.
 
 > **Avant tout :** les migrations `0001` à `0012` doivent déjà être en place.
 > Si l'application fonctionne (messages, amis, Puissance 4, suivi sportif),
