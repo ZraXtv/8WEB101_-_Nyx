@@ -12,6 +12,7 @@ import { exigeConnexion, deconnexion } from './auth.js'
 import { $, $$, el, vide, alerte, avatar, heure, quand } from './util.js'
 import * as conversation from './conversation.js'
 import * as presence from './presence.js'
+import * as nonLus from './non-lus.js'
 import * as amis from './amis.js'
 import * as serveurs from './serveurs.js'
 import * as profil from './profil.js'
@@ -66,6 +67,7 @@ async function demarrer() {
   await ouvrirFil(etat.source)
 
   await presence.demarrer()
+  nonLus.demarrer()
   await sport.chargerCatalogue()
   sport.demarrerScores()
 

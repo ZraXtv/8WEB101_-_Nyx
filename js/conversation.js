@@ -8,6 +8,7 @@
 
 import { sb } from './supabase.js'
 import { etat, emet } from './etat.js'
+import * as nonLus from './non-lus.js'
 
 const TAILLE_PAGE = 50
 
@@ -124,6 +125,7 @@ export async function ouvrir(source) {
 
   emet('messages', { chargement: false })
   abonner(source)
+  nonLus.efface(source)
   await marquerLu(source)
 }
 

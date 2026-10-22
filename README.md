@@ -55,7 +55,8 @@ réel reposent sur [Supabase](https://supabase.com).
 - **Amis et messages privés** — ajout par pseudo, demandes à accepter ou
   refuser, conversations à deux.
 - **Temps réel** — messages sans rechargement, indicateur « en train
-  d'écrire », présence en ligne, accusés envoyé / reçu / lu.
+  d'écrire », présence en ligne, accusés envoyé / reçu / lu, et le nombre
+  de messages non lus dans le titre de l'onglet.
 - **Profil** — photo, nom affiché, présentation.
 - **Puissance 4** — une partie se lance depuis un salon ou une conversation ;
   les règles sont vérifiées par la base de données, pas par le navigateur.
