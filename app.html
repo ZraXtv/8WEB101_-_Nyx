@@ -62,101 +62,111 @@
 
 <aside class="menu" id="menu" data-ouvert="false" role="dialog" aria-modal="true" aria-label="Menu de navigation">
   <div class="menu__entete">
-    <span class="menu__marque">Nyx</span>
+    <a class="menu__marque" href="index.html" title="Retour au site">Nyx</a>
     <button class="bouton-icone" id="fermer-menu" aria-label="Fermer le menu">
       <svg width="20" height="20"><use href="#i-fermer"/></svg>
     </button>
   </div>
 
-  <div class="menu__corps">
-    <!-- Le Lobby : le salon commun, à part des serveurs. Si on l'a quitté,
-         l'entrée propose d'y revenir. -->
-    <button class="menu__entree" id="ouvrir-lobby" hidden>
-      <svg width="16" height="16"><use href="#i-globe"/></svg>
-      <span id="libelle-lobby">Lobby</span>
-    </button>
+  <!--
+    Deux colonnes, comme Discord : une barre d'icônes (Lobby, messages privés,
+    un rond par serveur) et, à côté, le contenu de ce qui est choisi. Ajouter
+    des amis ou des serveurs n'allonge plus le menu que d'une petite icône.
+  -->
+  <div class="menu__colonnes">
+    <nav class="rail" aria-label="Lobby, messages privés et serveurs">
+      <button class="rail__bouton" id="ouvrir-lobby" type="button" hidden aria-label="Lobby" title="Lobby">
+        <svg width="20" height="20"><use href="#i-globe"/></svg>
+        <span class="rail__point" hidden></span>
+      </button>
+      <button class="rail__bouton" id="vue-mp" type="button" aria-label="Messages privés" title="Messages privés">
+        <svg width="20" height="20"><use href="#i-message"/></svg>
+        <span class="rail__point" hidden></span>
+      </button>
+      <span class="rail__separateur" aria-hidden="true"></span>
+      <ul class="liste-nue rail__serveurs" id="liste-serveurs" aria-label="Serveurs"></ul>
+      <button class="rail__bouton rail__bouton--action" id="vue-nouveau" type="button"
+              aria-label="Créer ou rejoindre un serveur" title="Créer ou rejoindre un serveur">
+        <svg width="20" height="20"><use href="#i-plus"/></svg>
+      </button>
+    </nav>
 
-    <button class="menu__entree" id="ouvrir-amis">
-      <svg width="16" height="16"><use href="#i-amis"/></svg>
+    <div class="menu__panneau">
+      <!-- Lobby quitté : on explique avant de proposer d'y revenir. -->
+      <section id="panneau-lobby" hidden>
+        <p class="titre-section menu__titre-panneau">Lobby</p>
+        <p class="menu__texte">Le salon commun de Nyx. Y être rend ton profil et ta présence visibles de tous ses membres.</p>
+        <button class="bouton bouton--primaire menu__bouton-plein" id="rejoindre-lobby" type="button">Rejoindre le Lobby</button>
+      </section>
+
+      <section id="bloc-mp" hidden>
+        <p class="titre-section menu__titre-panneau">Messages privés</p>
+        <ul class="liste-nue" id="liste-mp"></ul>
+        <p class="menu__texte" id="mp-vide" hidden>Aucune conversation. Ajoute des amis pour discuter en privé.</p>
+      </section>
+
+      <section id="bloc-salons" hidden>
+        <div class="menu__titre-groupe menu__titre-panneau">
+          <p class="titre-section" id="nom-serveur-courant"></p>
+          <button class="bouton-icone" id="gerer-serveur" style="width:1.5rem;height:1.5rem"
+                  aria-label="Gérer le serveur" title="Gérer le serveur">
+            <svg width="16" height="16"><use href="#i-reglages"/></svg>
+          </button>
+          <button class="bouton-icone" id="creer-salon" style="width:1.5rem;height:1.5rem"
+                  aria-label="Créer un salon" title="Créer un salon">
+            <svg width="16" height="16"><use href="#i-plus"/></svg>
+          </button>
+        </div>
+
+        <form id="formulaire-salon" class="formulaire" style="margin-bottom:.5rem" hidden>
+          <input class="champ" name="nom" placeholder="nom-du-salon" aria-label="Nom du salon" required maxlength="32" style="min-height:2.25rem">
+        </form>
+
+        <ul class="liste-nue" id="liste-salons"></ul>
+      </section>
+
+      <section id="panneau-nouveau" hidden>
+        <p class="titre-section menu__titre-panneau">Créer un serveur</p>
+        <form id="formulaire-serveur" class="formulaire">
+          <input class="champ" name="nom" placeholder="Mon serveur" aria-label="Nom du serveur" required maxlength="64" style="min-height:2.25rem">
+          <button class="bouton bouton--primaire menu__bouton-plein" type="submit">Créer</button>
+        </form>
+
+        <p class="titre-section menu__titre-panneau" style="margin-top:1.25rem">Rejoindre un serveur</p>
+        <form id="formulaire-invitation" class="formulaire">
+          <label class="sr-only" for="code-invitation">Code d’invitation</label>
+          <input class="champ" id="code-invitation" name="code" placeholder="code d’invitation"
+                 autocomplete="off" required style="min-height:2.25rem;font-family:ui-monospace,monospace">
+          <button class="bouton bouton--fantome menu__bouton-plein" type="submit">Rejoindre</button>
+          <p class="alerte alerte--erreur" id="erreur-invitation" role="alert" hidden></p>
+        </form>
+      </section>
+    </div>
+  </div>
+
+  <!-- Les outils : une rangée d'icônes, au lieu de six lignes de menu. -->
+  <div class="menu__outils" role="group" aria-label="Outils">
+    <button class="outil" id="ouvrir-amis" type="button" title="Amis">
+      <svg width="18" height="18"><use href="#i-amis"/></svg>
       <span>Amis</span>
-      <span class="menu__pastille" id="pastille-amis" hidden></span>
+      <span class="menu__pastille outil__pastille" id="pastille-amis" hidden></span>
     </button>
-
-    <button class="menu__entree" id="ouvrir-sport">
-      <svg width="16" height="16"><use href="#i-trophee"/></svg>
+    <button class="outil" id="ouvrir-sport" type="button" title="Sport">
+      <svg width="18" height="18"><use href="#i-trophee"/></svg>
       <span>Sport</span>
     </button>
-
-    <button class="menu__entree" id="ouvrir-paris" hidden>
-      <svg width="16" height="16"><use href="#i-jetons"/></svg>
-      <span>Paris</span>
-      <span class="menu__points" id="solde-menu"></span>
+    <button class="outil" id="ouvrir-paris" type="button" title="Paris" hidden>
+      <svg width="18" height="18"><use href="#i-jetons"/></svg>
+      <span id="solde-menu">Paris</span>
     </button>
-
-    <button class="menu__entree" id="ouvrir-boutique" hidden>
-      <svg width="16" height="16"><use href="#i-boutique"/></svg>
+    <button class="outil" id="ouvrir-boutique" type="button" title="Boutique" hidden>
+      <svg width="18" height="18"><use href="#i-boutique"/></svg>
       <span>Boutique</span>
     </button>
-
-    <button class="menu__entree" id="ouvrir-apparence">
-      <svg width="16" height="16"><use href="#i-palette"/></svg>
-      <span>Apparence</span>
+    <button class="outil" id="ouvrir-apparence" type="button" title="Apparence">
+      <svg width="18" height="18"><use href="#i-palette"/></svg>
+      <span>Thème</span>
     </button>
-
-    <div id="bloc-mp" hidden>
-      <div class="menu__separateur"></div>
-      <p class="titre-section" style="padding-inline:.75rem">Messages privés</p>
-      <ul class="liste-nue" id="liste-mp" style="margin-top:.25rem"></ul>
-    </div>
-
-    <div class="menu__separateur"></div>
-
-    <div class="menu__titre-groupe">
-      <p class="titre-section">Serveurs</p>
-      <button class="bouton-icone" id="creer-serveur" style="width:1.5rem;height:1.5rem"
-              aria-label="Créer un serveur" title="Créer un serveur">
-        <svg width="16" height="16"><use href="#i-plus"/></svg>
-      </button>
-    </div>
-
-    <form id="formulaire-serveur" class="formulaire" style="padding-inline:.75rem;margin-top:.5rem" hidden>
-      <input class="champ" name="nom" placeholder="Mon serveur" aria-label="Nom du serveur" required maxlength="64" style="min-height:2.25rem">
-    </form>
-
-    <ul class="liste-nue" id="liste-serveurs" style="margin-top:.25rem"></ul>
-
-    <button class="menu__entree menu__entree--discret" id="rejoindre-serveur" aria-expanded="false">
-      <svg width="16" height="16"><use href="#i-entrer"/></svg>
-      <span>Rejoindre un serveur</span>
-    </button>
-
-    <form id="formulaire-invitation" class="formulaire" style="padding-inline:.75rem" hidden>
-      <label class="sr-only" for="code-invitation">Code d’invitation</label>
-      <input class="champ" id="code-invitation" name="code" placeholder="code d’invitation"
-             autocomplete="off" required style="min-height:2.25rem;font-family:ui-monospace,monospace">
-      <p class="alerte alerte--erreur" id="erreur-invitation" role="alert" hidden></p>
-    </form>
-
-    <div id="bloc-salons" hidden>
-      <div class="menu__separateur"></div>
-      <div class="menu__titre-groupe">
-        <p class="titre-section" id="nom-serveur-courant"></p>
-        <button class="bouton-icone" id="gerer-serveur" style="width:1.5rem;height:1.5rem"
-                aria-label="Gérer le serveur" title="Gérer le serveur">
-          <svg width="16" height="16"><use href="#i-reglages"/></svg>
-        </button>
-        <button class="bouton-icone" id="creer-salon" style="width:1.5rem;height:1.5rem"
-                aria-label="Créer un salon" title="Créer un salon">
-          <svg width="16" height="16"><use href="#i-plus"/></svg>
-        </button>
-      </div>
-
-      <form id="formulaire-salon" class="formulaire" style="padding-inline:.75rem;margin-top:.5rem" hidden>
-        <input class="champ" name="nom" placeholder="nom-du-salon" aria-label="Nom du salon" required maxlength="32" style="min-height:2.25rem">
-      </form>
-
-      <ul class="liste-nue" id="liste-salons" style="margin-top:.25rem;padding-bottom:1rem"></ul>
-    </div>
   </div>
 
   <div class="menu__pied">
@@ -168,15 +178,8 @@
       </span>
       <svg width="16" height="16" style="flex:none;color:var(--texte-attenue)"><use href="#i-reglages"/></svg>
     </button>
-
-    <a class="menu__entree menu__entree--discret" href="index.html">
-      <svg width="16" height="16"><use href="#i-retour"/></svg>
-      <span>Retour au site</span>
-    </a>
-
-    <button class="menu__entree menu__entree--discret" id="deconnexion">
-      <svg width="16" height="16"><use href="#i-sortir"/></svg>
-      <span>Se déconnecter</span>
+    <button class="bouton-icone" id="deconnexion" type="button" aria-label="Se déconnecter" title="Se déconnecter">
+      <svg width="18" height="18"><use href="#i-sortir"/></svg>
     </button>
   </div>
 </aside>

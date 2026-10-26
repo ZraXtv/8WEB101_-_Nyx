@@ -82,16 +82,135 @@ async function demarrer() {
 
 /* ======================= Menu ======================= */
 
+/* ---- Ce qu'affiche le panneau à côté de la barre d'icônes ----
+ *
+ * 'mp' (messages privés), 'lobby' (Lobby quitté : proposer d'y revenir),
+ * 'nouveau' (créer ou rejoindre un serveur), ou l'identifiant d'un serveur
+ * (ses salons). Null : on le déduit du fil affiché.
+ */
+let vueMenu = null
+
+function vueValide(vue) {
+  if (vue === 'mp' || vue === 'nouveau') return true
+  if (vue === 'lobby') return Boolean(etat.lobby && !etat.lobby.estMembre)
+  return etat.serveurs.some((s) => s.id === vue)
+}
+
+function vueDuMenu() {
+  if (vueValide(vueMenu)) return vueMenu
+  if (etat.source?.type === 'mp') return 'mp'
+  if (etat.serveurId && vueValide(etat.serveurId)) return etat.serveurId
+  return etat.serveurs[0]?.id ?? 'mp'
+}
+
+/** Petit point « non lu » d'une icône de la barre. */
+function point(bouton, actif) {
+  const marque = bouton.querySelector('.rail__point')
+  if (marque) marque.hidden = !actif
+}
+
+/** Nombre de non-lus, en pastille au bout d'une ligne du panneau. */
+const compteur = (n) => (n > 0 ? el('span', { class: 'menu__pastille' }, n > 99 ? '99+' : String(n)) : null)
+
+function boutonServeur(serveur, vue) {
+  const icone = el('span', { class: 'icone-serveur' })
+  icone.append(serveur.icon_url
+    ? el('img', { src: serveur.icon_url, alt: '', loading: 'lazy' })
+    : el('span', { 'aria-hidden': 'true' }, serveur.name.charAt(0).toUpperCase()))
+  const nonLu = serveur.channels.some((c) => nonLus.de({ type: 'salon', id: c.id }) > 0)
+
+  return el('li', {}, el('button', {
+    type: 'button',
+    class: `rail__bouton rail__bouton--serveur${vue === serveur.id ? ' rail__bouton--actif' : ''}`,
+    'aria-label': serveur.name, title: serveur.name,
+    'aria-current': etat.serveurId === serveur.id ? 'true' : null,
+    onclick: () => { vueMenu = serveur.id; choisirServeur(serveur.id) },
+  }, icone, el('span', { class: 'rail__point', hidden: !nonLu })))
+}
+
 function dessinerMenu() {
-  /* -- Lobby : entrer, ou y revenir si on l'a quitté -- */
-  const entreeLobby = $('#ouvrir-lobby')
-  entreeLobby.hidden = !etat.lobby
-  $('#libelle-lobby').textContent = etat.lobby?.estMembre ? 'Lobby' : 'Rejoindre le Lobby'
+  const vue = vueDuMenu()
+
+  /* -- Barre d'icônes : Lobby, messages privés, serveurs, « + » -- */
+  const lobby = $('#ouvrir-lobby')
+  lobby.hidden = !etat.lobby
   const dansLeLobby = etat.source?.type === 'salon' && estLeLobby(etat.source.id)
-  entreeLobby.classList.toggle('menu__entree--actif', dansLeLobby)
-  entreeLobby.toggleAttribute('aria-current', dansLeLobby)
-  // Sans la migration 0016, pas de catalogue : l'entrée reste cachée.
+  lobby.classList.toggle('rail__bouton--actif', dansLeLobby || vue === 'lobby')
+  lobby.setAttribute('aria-label', etat.lobby?.estMembre ? 'Lobby' : 'Rejoindre le Lobby')
+  lobby.title = lobby.getAttribute('aria-label')
+  point(lobby, Boolean(salonDuLobby()) && nonLus.de({ type: 'salon', id: salonDuLobby().id }) > 0)
+
+  const mp = $('#vue-mp')
+  mp.classList.toggle('rail__bouton--actif', vue === 'mp')
+  point(mp, etat.conversations.some((c) => nonLus.de({ type: 'mp', id: c.id }) > 0))
+
+  $('#vue-nouveau').classList.toggle('rail__bouton--actif', vue === 'nouveau')
+
+  const rail = $('#liste-serveurs')
+  vide(rail)
+  for (const serveur of etat.serveurs) rail.append(boutonServeur(serveur, vue))
+
+  /* -- Panneau : une seule section à la fois -- */
+  $('#panneau-lobby').hidden = vue !== 'lobby'
+  $('#bloc-mp').hidden = vue !== 'mp'
+  $('#panneau-nouveau').hidden = vue !== 'nouveau'
+  const serveur = etat.serveurs.find((s) => s.id === vue) ?? null
+  $('#bloc-salons').hidden = !serveur
+
+  // Messages privés
+  const listeMp = $('#liste-mp')
+  vide(listeMp)
+  $('#mp-vide').hidden = etat.conversations.length > 0
+  for (const conv of etat.conversations) {
+    const source = { type: 'mp', id: conv.id }
+    const actif = etat.source?.type === 'mp' && etat.source.id === conv.id
+    listeMp.append(el('li', {}, el('button', {
+      class: `menu__entree${actif ? ' menu__entree--actif' : ''}`,
+      type: 'button',
+      'aria-current': actif ? 'true' : null,
+      onclick: () => { void ouvrirFil(source); fermerMenu() },
+    },
+    avatar({
+      url: conv.autre.avatar_url, nom: conv.autre.display_name,
+      taille: 28, enLigne: presence.estEnLigne(conv.autre.id), cadre: cosmetiques.cadre(conv.autre),
+    }),
+    el('span', {}, conv.autre.display_name),
+    compteur(nonLus.de(source)))))
+  }
+
+  // Salons du serveur choisi
+  if (serveur) {
+    $('#nom-serveur-courant').textContent = serveur.name
+    const listeSalons = $('#liste-salons')
+    vide(listeSalons)
+    for (const salon of serveur.channels) {
+      const source = { type: 'salon', id: salon.id }
+      const actif = etat.source?.type === 'salon' && etat.source.id === salon.id
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+      svg.setAttribute('width', '16'); svg.setAttribute('height', '16')
+      svg.style.opacity = '.6'
+      const use = document.createElementNS('http://www.w3.org/2000/svg', 'use')
+      use.setAttribute('href', '#i-diese')
+      svg.append(use)
+      listeSalons.append(el('li', {}, el('button', {
+        class: `menu__entree${actif ? ' menu__entree--actif' : ''}`,
+        type: 'button',
+        'aria-current': actif ? 'true' : null,
+        onclick: () => { void ouvrirFil(source); fermerMenu() },
+      }, svg, el('span', {}, salon.name), compteur(nonLus.de(source)))))
+    }
+  }
+
+  /* -- Outils -- */
+  // Sans la migration 0016, pas de catalogue : la boutique reste cachée.
   $('#ouvrir-boutique').hidden = !cosmetiques.disponible
+
+  const recues = etat.amis.filter((a) => a.genre === 'recue').length
+  const pastille = $('#pastille-amis')
+  pastille.textContent = recues
+  pastille.hidden = recues === 0
+  pastille.setAttribute('aria-label', `${recues} demande(s) en attente`)
+
   /* -- Identité, en pied de menu -- */
   const boite = $('#avatar-menu')
   vide(boite)
@@ -102,94 +221,6 @@ function dessinerMenu() {
   vide($('#nom-menu'))
   $('#nom-menu').append(etat.moi ? cosmetiques.nom(etat.moi) : '—')
   $('#pseudo-menu').textContent = etat.moi ? `@${etat.moi.username}` : ''
-
-  /* -- Pastille des demandes d'amis reçues -- */
-  const recues = etat.amis.filter((a) => a.genre === 'recue').length
-  const pastille = $('#pastille-amis')
-  pastille.textContent = recues
-  pastille.hidden = recues === 0
-  pastille.setAttribute('aria-label', `${recues} demande(s) en attente`)
-
-  /* -- Messages privés -- */
-  const blocMp = $('#bloc-mp')
-  const listeMp = $('#liste-mp')
-  vide(listeMp)
-  blocMp.hidden = etat.conversations.length === 0
-
-  for (const conv of etat.conversations) {
-    const actif = etat.source?.type === 'mp' && etat.source.id === conv.id
-    const bouton = el('button', {
-      class: `menu__entree${actif ? ' menu__entree--actif' : ''}`,
-      type: 'button',
-      'aria-current': actif ? 'true' : null,
-      onclick: () => { void ouvrirFil({ type: 'mp', id: conv.id }); fermerMenu() },
-    })
-    bouton.append(
-      avatar({
-        url: conv.autre.avatar_url, nom: conv.autre.display_name,
-        taille: 28, enLigne: presence.estEnLigne(conv.autre.id), cadre: cosmetiques.cadre(conv.autre),
-      }),
-      el('span', {}, conv.autre.display_name),
-    )
-    listeMp.append(el('li', {}, bouton))
-  }
-
-  /* -- Serveurs -- */
-  const listeServeurs = $('#liste-serveurs')
-  vide(listeServeurs)
-
-  if (!etat.serveurs.length) {
-    listeServeurs.append(el('li', {
-      style: { padding: '.5rem .75rem', fontSize: '.875rem', color: 'var(--texte-attenue)' },
-    }, 'Aucun serveur.'))
-  }
-
-  for (const serveur of etat.serveurs) {
-    const actif = serveur.id === etat.serveurId
-    const icone = el('span', { class: 'icone-serveur' })
-    icone.append(
-      serveur.icon_url
-        ? el('img', { src: serveur.icon_url, alt: '', loading: 'lazy' })
-        : el('span', { 'aria-hidden': 'true' }, serveur.name.charAt(0).toUpperCase()),
-    )
-
-    listeServeurs.append(el('li', {},
-      el('button', {
-        class: `menu__entree${actif ? ' menu__entree--actif' : ''}`,
-        type: 'button',
-        'aria-current': actif ? 'true' : null,
-        onclick: () => choisirServeur(serveur.id),
-      }, icone, el('span', {}, serveur.name))))
-  }
-
-  /* -- Salons du serveur sélectionné -- */
-  const serveur = serveurCourant()
-  const blocSalons = $('#bloc-salons')
-  blocSalons.hidden = !serveur
-
-  if (serveur) {
-    $('#nom-serveur-courant').textContent = serveur.name
-    const listeSalons = $('#liste-salons')
-    vide(listeSalons)
-
-    for (const salon of serveur.channels) {
-      const actif = etat.source?.type === 'salon' && etat.source.id === salon.id
-      const bouton = el('button', {
-        class: `menu__entree${actif ? ' menu__entree--actif' : ''}`,
-        type: 'button',
-        'aria-current': actif ? 'true' : null,
-        onclick: () => { void ouvrirFil({ type: 'salon', id: salon.id }); fermerMenu() },
-      })
-      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-      svg.setAttribute('width', '16'); svg.setAttribute('height', '16')
-      svg.style.opacity = '.6'
-      const use = document.createElementNS('http://www.w3.org/2000/svg', 'use')
-      use.setAttribute('href', '#i-diese')
-      svg.append(use)
-      bouton.append(svg, el('span', {}, salon.name))
-      listeSalons.append(el('li', {}, bouton))
-    }
-  }
 }
 
 function choisirServeur(id) {
@@ -399,21 +430,37 @@ function brancherInterface() {
   })
 
   /* -- Formulaires à bascule du menu -- */
-  basculeFormulaire('#creer-serveur', '#formulaire-serveur')
   basculeFormulaire('#creer-salon', '#formulaire-salon')
-  basculeFormulaire('#rejoindre-serveur', '#formulaire-invitation')
 
-  $('#ouvrir-lobby').addEventListener('click', async () => {
-    if (!etat.lobby?.estMembre) {
-      const probleme = await serveurs.rejoindreLobby()
-      if (probleme) { alerte($('#erreur-invitation'), probleme); return }
-    }
+  /* -- Barre d'icônes -- */
+  const ouvrirLobby = () => {
     const salon = salonDuLobby()
     if (!salon) return
     // Le Lobby n'est pas un serveur : aucun serveur n'est sélectionné.
     etat.serveurId = null
     void ouvrirFil({ type: 'salon', id: salon.id })
     fermerMenu()
+  }
+
+  // Membre : on y va. Sinon, le panneau explique avant de proposer d'y revenir.
+  $('#ouvrir-lobby').addEventListener('click', () => {
+    if (etat.lobby?.estMembre) { vueMenu = null; ouvrirLobby(); return }
+    vueMenu = 'lobby'
+    dessinerMenu()
+  })
+
+  $('#rejoindre-lobby').addEventListener('click', async () => {
+    const probleme = await serveurs.rejoindreLobby()
+    if (probleme) { console.error('Rejoindre le Lobby', probleme); return }
+    vueMenu = null
+    ouvrirLobby()
+  })
+
+  $('#vue-mp').addEventListener('click', () => { vueMenu = 'mp'; dessinerMenu() })
+  $('#vue-nouveau').addEventListener('click', () => {
+    vueMenu = 'nouveau'
+    dessinerMenu()
+    $('#formulaire-serveur input')?.focus()
   })
 
   $('#quitter-lobby').addEventListener('click', async () => {
@@ -427,7 +474,7 @@ function brancherInterface() {
     const probleme = await serveurs.creerServeur(champ.value)
     if (probleme) return
     champ.value = ''
-    evenement.target.hidden = true
+    vueMenu = null
   })
 
   $('#formulaire-salon').addEventListener('submit', async (evenement) => {
@@ -448,7 +495,7 @@ function brancherInterface() {
     alerte($('#erreur-invitation'), probleme)
     if (probleme) return
     champ.value = ''
-    evenement.target.hidden = true
+    vueMenu = null
   })
 
   /* -- Premier serveur / premier salon, depuis l'écran d'accueil -- */
@@ -579,8 +626,14 @@ ecoute('ouvrir-carte', (profileId) => {
 // Solde en pastille dans le menu ; l'entrée n'apparaît qu'une fois les paris disponibles.
 ecoute('points', (portefeuille) => {
   $('#ouvrir-paris').hidden = !portefeuille
-  $('#solde-menu').textContent = portefeuille ? portefeuille.solde.toLocaleString('fr-FR') : ''
+  // Le libellé de l'outil devient le solde : « 6 850 » plutôt que « Paris ».
+  const solde = portefeuille ? portefeuille.solde.toLocaleString('fr-FR') : ''
+  $('#solde-menu').textContent = solde || 'Paris'
+  $('#ouvrir-paris').title = solde ? `Paris — ${solde} points` : 'Paris'
 })
+
+// Les points « non lu » de la barre d'icônes.
+ecoute('non-lus', () => dessinerMenu())
 ecoute('equipes-changees', () => void sport.releverScores())
 
 /* ======================= Mise en route ======================= */
