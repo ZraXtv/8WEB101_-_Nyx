@@ -56,15 +56,31 @@ export async function creerSalon(serveurId, nom) {
 }
 
 /**
- * Revenir dans le Lobby après l'avoir quitté. La base n'accepte cette ligne
- * que pour un serveur public et avec le rôle « membre » (migration 0015).
+ * Entrer dans le Lobby, ou y revenir. La base n'accepte cette ligne que pour
+ * un serveur public et avec le rôle « membre » (migration 0015).
  */
 export async function rejoindreLobby() {
-  const lobby = etat.lobbyARejoindre
-  if (!lobby) return null
+  const lobby = etat.lobby
+  if (!lobby || lobby.estMembre) return null
 
   const { error } = await sb.from('server_members')
     .insert({ server_id: lobby.id, profile_id: etat.moiId, role: 'member' })
+  if (error) return error.message
+
+  await rafraichir()
+  return null
+}
+
+/**
+ * Quitter le Lobby. Y être rend son profil et sa présence visibles de tous :
+ * ce doit rester un choix, réversible avec `rejoindreLobby()`.
+ */
+export async function quitterLobby() {
+  const lobby = etat.lobby
+  if (!lobby?.estMembre) return null
+
+  const { error } = await sb.from('server_members')
+    .delete().eq('server_id', lobby.id).eq('profile_id', etat.moiId)
   if (error) return error.message
 
   await rafraichir()

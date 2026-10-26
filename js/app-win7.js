@@ -16,7 +16,7 @@
  * figé sans raison.
  */
 
-import { etat, ecoute, emet, conversationCourante, serveurDuSalon } from './etat.js'
+import { etat, ecoute, emet, conversationCourante, serveurDuSalon, salonDuLobby, estLeLobby } from './etat.js'
 import { chargerTout } from './donnees.js'
 import { exigeConnexion, deconnexion } from './auth.js'
 import { $, $$, el, vide, alerte, avatar } from './util.js'
@@ -87,6 +87,11 @@ function dessinerBureau() {
   const demandes = etat.amis.filter((a) => a.genre === 'recue').length
 
   conteneur.append(...[
+    // Le Lobby, salon commun, a sa propre icône : ce n'est pas un serveur.
+    etat.lobby && icone({
+      libelle: etat.lobby.estMembre ? 'Lobby' : 'Rejoindre le Lobby', image: 'img/win7/lobby.svg',
+      onOuvrir: () => void ouvrirLobby(),
+    }),
     icone({
       libelle: 'Serveurs', image: 'img/win7/dossier.svg',
       onOuvrir: ouvrirExplorateur,
@@ -190,14 +195,7 @@ function dessinerExplorateur(corps) {
         'Nouveau serveur'),
       el('button', { type: 'button', onclick: () => ouvrirModale('#modale-nouveau') },
         'Rejoindre avec un code'),
-      // Seulement quand on a quitté le Lobby Général.
-      etat.lobbyARejoindre && el('button', {
-        type: 'button',
-        onclick: async () => {
-          const probleme = await serveurs.rejoindreLobby()
-          if (probleme) window.alert(probleme)
-        },
-      }, 'Rejoindre le Lobby')),
+    ),
     grille,
     el('div', { class: 'status-bar' },
       el('p', { class: 'status-bar-field' },
@@ -570,9 +568,11 @@ function dessinerEnteteFenetre(fenetre, fil) {
 
   // On n'y répète pas le nom du fil : il est déjà sur l'onglet. On y met le
   // contexte, qui lui n'est écrit nulle part ailleurs.
-  const contexte = fil.source.type === 'salon'
-    ? serveurDuSalon(fil.source.id)?.name ?? ''
-    : `@${etat.conversations.find((c) => c.id === fil.source.id)?.autre.username ?? ''}`
+  const lobby = fil.source.type === 'salon' && estLeLobby(fil.source.id)
+  const contexte = lobby ? 'Le salon commun de Nyx'
+    : fil.source.type === 'salon'
+      ? serveurDuSalon(fil.source.id)?.name ?? ''
+      : `@${etat.conversations.find((c) => c.id === fil.source.id)?.autre.username ?? ''}`
 
   entete.append(el('strong', {}, contexte))
 
@@ -582,6 +582,18 @@ function dessinerEnteteFenetre(fenetre, fil) {
 
   const droite = el('span', { class: 'chat-entete__droite' })
   const partie = jeu.partieCourante()
+
+  // Quitter le Lobby : y être rend son profil et sa présence visibles de tous.
+  if (lobby) {
+    droite.append(el('button', {
+      type: 'button',
+      title: 'Y être rend ton profil et ta présence visibles de tous',
+      onclick: async () => {
+        const probleme = await serveurs.quitterLobby()
+        if (probleme) window.alert(probleme)
+      },
+    }, 'Quitter le Lobby'))
+  }
 
   droite.append(el('button', {
     type: 'button',
@@ -619,6 +631,30 @@ function ouvrirServeur(serveurId) {
     return
   }
 
+  fenetre.ouvrir()
+  void activer(fenetre, fenetre.__actif ?? fenetre.__fils[0])
+}
+
+/**
+ * Le Lobby : une fenêtre de discussion à un seul salon. Si on l'a quitté,
+ * on y entre d'abord (le rechargement qui suit redessine le bureau).
+ */
+async function ouvrirLobby() {
+  if (!etat.lobby) return
+  if (!etat.lobby.estMembre) {
+    const probleme = await serveurs.rejoindreLobby()
+    if (probleme) { window.alert(probleme); return }
+  }
+  const salon = salonDuLobby()
+  if (!salon) return
+
+  let fenetre = fenetres.get('lobby')
+  if (!fenetre) {
+    const fil = { id: salon.id, libelle: '#lobby', source: { type: 'salon', id: salon.id } }
+    fenetre = creerFenetre({ cle: 'lobby', titre: 'Lobby', icone: 'img/win7/lobby.svg', fils: [fil] })
+    void activer(fenetre, fil)
+    return
+  }
   fenetre.ouvrir()
   void activer(fenetre, fenetre.__actif ?? fenetre.__fils[0])
 }
@@ -782,6 +818,7 @@ ecoute('donnees-rechargees', () => {
   const explorateurOuvert = fenetres.has('serveurs')
   const parisOuverts = fenetres.has('paris')
   const boutiqueOuverte = fenetres.has('boutique')
+  const lobbyOuvert = fenetres.has('lobby')
 
   // Les fenêtres reflètent l'ancien état : on repart du bureau.
   //
@@ -800,6 +837,7 @@ ecoute('donnees-rechargees', () => {
   if (explorateurOuvert) ouvrirExplorateur()
   if (parisOuverts) ouvrirFenetreParis()
   if (boutiqueOuverte) ouvrirFenetreBoutique()
+  if (lobbyOuvert && salonDuLobby()) void ouvrirLobby()
 })
 
 ecoute('ouvrir-boutique', () => {
@@ -875,6 +913,7 @@ async function demarrer() {
 
   // Premier serveur ouvert d'emblée : un bureau vide n'apprend rien.
   if (etat.serveurs[0]?.channels?.length) ouvrirServeur(etat.serveurs[0].id)
+  else if (salonDuLobby()) void ouvrirLobby()
 
   await presence.demarrer()
   nonLus.demarrer()

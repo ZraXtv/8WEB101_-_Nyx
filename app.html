@@ -69,6 +69,13 @@
   </div>
 
   <div class="menu__corps">
+    <!-- Le Lobby : le salon commun, à part des serveurs. Si on l'a quitté,
+         l'entrée propose d'y revenir. -->
+    <button class="menu__entree" id="ouvrir-lobby" hidden>
+      <svg width="16" height="16"><use href="#i-globe"/></svg>
+      <span id="libelle-lobby">Lobby</span>
+    </button>
+
     <button class="menu__entree" id="ouvrir-amis">
       <svg width="16" height="16"><use href="#i-amis"/></svg>
       <span>Amis</span>
@@ -117,12 +124,6 @@
     </form>
 
     <ul class="liste-nue" id="liste-serveurs" style="margin-top:.25rem"></ul>
-
-    <!-- Visible seulement quand on a quitté le Lobby Général. -->
-    <button class="menu__entree menu__entree--discret" id="rejoindre-lobby" hidden>
-      <svg width="16" height="16"><use href="#i-globe"/></svg>
-      <span>Rejoindre le Lobby Général</span>
-    </button>
 
     <button class="menu__entree menu__entree--discret" id="rejoindre-serveur" aria-expanded="false">
       <svg width="16" height="16"><use href="#i-entrer"/></svg>
@@ -185,6 +186,11 @@
   <header class="discussion__entete" id="entete" hidden>
     <h1 class="discussion__titre" id="titre-fil"></h1>
     <p class="discussion__sous-titre" id="sous-titre-fil"></p>
+    <button class="bouton-icone discussion__quitter" id="quitter-lobby" type="button" hidden
+            aria-label="Quitter le Lobby"
+            title="Quitter le Lobby (y être rend ton profil et ta présence visibles de tous)">
+      <svg width="18" height="18"><use href="#i-sortir"/></svg>
+    </button>
     <button class="bouton-icone discussion__jeu" id="ouvrir-jeu" data-actif="false"
             aria-label="Puissance 4" title="Puissance 4">
       <svg width="20" height="20"><use href="#i-manette"/></svg>

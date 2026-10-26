@@ -221,10 +221,25 @@ aucune colonne `cos_*` n'est demandée, et la boutique reste cachée.
 
 ## Lobby Général
 
-Un serveur ordinaire, que chaque compte rejoint à l'inscription : tout le
-reste de l'application (salons, messages, temps réel) fonctionne donc sans
-cas particulier. Il est **public**, ce qui permet de le rejoindre de soi-même
-après l'avoir quitté.
+Le salon commun de Nyx, que chaque compte rejoint à l'inscription. En base,
+c'est un serveur (avec un seul salon, `#lobby`) : messages, temps réel et
+accusés fonctionnent donc sans cas particulier. Il est **public**, ce qui
+permet de le rejoindre de soi-même après l'avoir quitté.
+
+**Il n'appartient à personne** (migration 0017). Il appartenait d'abord au
+compte le plus ancien, qui avait des droits sur tous les autres. `owner_id`
+peut désormais être vide, pour le Lobby seulement (contrainte
+`servers_proprietaire_sauf_lobby`) ; chacun y est simple membre. Sans
+propriétaire ni administrateur, personne ne peut attribuer de rôle, exclure,
+créer ou renommer un salon, ni supprimer le message d'un autre : toutes ces
+règles exigent le rôle owner ou admin. Le Lobby s'administre depuis le
+dashboard. Supprimer le compte le plus ancien ne supprime plus le Lobby.
+
+**Pour l'interface, ce n'est pas un serveur.** `donnees.js` le range à part
+(`etat.lobby`), hors de `etat.serveurs` : il a sa propre entrée en tête du
+menu, sa propre icône sur le bureau Windows 7, et n'apparaît ni dans la liste
+ni dans l'explorateur de serveurs. On le quitte depuis l'en-tête de son fil ;
+l'entrée du menu (ou l'icône du bureau) propose alors de le rejoindre.
 
 **Il est reconnu par la colonne `is_lobby`, jamais par son nom.** La première
 version (`0014_lobby.sql`) cherchait « le serveur nommé Lobby Général ». Sur

@@ -84,10 +84,13 @@ export async function chargerTout() {
 
   // Seuls les serveurs dont je suis membre vont dans la liste. Avant ce tri,
   // un serveur public apparaissait chez tout le monde, rôle « membre » par
-  // défaut et sans aucun salon lisible. Le Lobby quitté est gardé à part,
-  // pour proposer de le rejoindre.
-  etat.serveurs = visibles.filter((s) => s.estMembre)
-  etat.lobbyARejoindre = visibles.find((s) => s.is_lobby && !s.estMembre) ?? null
+  // défaut et sans aucun salon lisible.
+  //
+  // Le Lobby n'est pas un serveur pour l'interface : c'est le salon commun,
+  // sans propriétaire (migration 0017), présenté à part. On le garde, que je
+  // sois membre ou non, pour proposer d'y entrer.
+  etat.serveurs = visibles.filter((s) => s.estMembre && !s.is_lobby)
+  etat.lobby = visibles.find((s) => s.is_lobby) ?? null
 
   // La RLS ne renvoie que mes relations ; reste à savoir, pour chacune, qui
   // est « l'autre » et dans quel sens elle va.

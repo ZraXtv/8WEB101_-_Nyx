@@ -52,8 +52,9 @@ réel reposent sur [Supabase](https://supabase.com).
 
 - **Serveurs et salons** — trois rôles (propriétaire, administrateur, membre),
   codes d'invitation renouvelables, salons par sujet.
-- **Lobby Général** — un serveur commun que chaque compte rejoint à
-  l'inscription. On peut le quitter et le rejoindre à tout moment.
+- **Lobby** — le salon commun de Nyx, que chaque compte rejoint à
+  l'inscription. Il n'appartient à personne, a sa propre entrée (à part des
+  serveurs), et on peut le quitter et le rejoindre à tout moment.
 - **Amis et messages privés** — ajout par pseudo, demandes à accepter ou
   refuser, conversations à deux.
 - **Temps réel** — messages sans rechargement, indicateur « en train
@@ -131,8 +132,11 @@ Exécute ensuite `0015_lobby_securise.sql`, qui crée le Lobby Général. Elle s
 suffit à elle-même : `0014_lobby.sql`, sa première version, n'est pas
 nécessaire, et refuse de se relancer une fois `0015` en place.
 
-Enfin, `0016_boutique.sql` ouvre la boutique. Elle s'appuie sur les
+Puis `0016_boutique.sql` ouvre la boutique. Elle s'appuie sur les
 portefeuilles des paris : exécute-la après `0013`.
+
+Enfin, `0017_lobby_sans_proprietaire.sql` fait du Lobby un salon commun qui
+n'appartient à personne : exécute-la après `0015`.
 
 ### 3. La configuration
 
@@ -213,7 +217,8 @@ Le détail de chaque fichier est dans les [notes techniques](docs/notes-techniqu
   d'argent, interdits sans agrément de l'ANJ.
 - **Le Lobby est protégé par la base** : on ne peut ni le renommer, ni le
   supprimer, ni le rendre privé depuis l'application ou l'API, ni donner son
-  nom à un autre serveur, ni y entrer autrement que comme simple membre.
+  nom à un autre serveur, ni y entrer autrement que comme simple membre. Il
+  n'a pas de propriétaire : personne n'y a de droits sur les autres.
   Y être rend son profil et sa présence visibles de tous les comptes : c'est
   pourquoi on peut le quitter.
 - **Mots de passe** : au moins 12 caractères, et trois types de caractères

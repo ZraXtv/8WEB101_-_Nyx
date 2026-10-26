@@ -15,8 +15,12 @@ export const etat = {
 
   /** Serveurs dont je suis membre, salons et membres imbriqués. */
   serveurs: [],
-  /** Le Lobby Général, si je l'ai quitté (pour proposer de revenir). */
-  lobbyARejoindre: null,
+  /**
+   * Le Lobby : le salon commun, hors de la liste des serveurs. `estMembre`
+   * dit si j'y suis ; son unique salon est `channels[0]` (lisible seulement
+   * si j'y suis). Null tant que la migration 0015 n'est pas exécutée.
+   */
+  lobby: null,
   /** Relations d'amitié, vues depuis moi. */
   amis: [],
   /** Conversations privées ouvertes. */
@@ -58,10 +62,21 @@ export function serveurCourant() {
   return etat.serveurs.find((s) => s.id === etat.serveurId) ?? null
 }
 
+/** Mes serveurs, plus le Lobby si j'y suis : tout ce dont je peux lire les salons. */
+function serveursLisibles() {
+  return etat.lobby?.estMembre ? [...etat.serveurs, etat.lobby] : etat.serveurs
+}
+
 export function salonCourant() {
   if (etat.source?.type !== 'salon') return null
-  return etat.serveurs.flatMap((s) => s.channels).find((c) => c.id === etat.source.id) ?? null
+  return serveursLisibles().flatMap((s) => s.channels).find((c) => c.id === etat.source.id) ?? null
 }
+
+/** Le salon du Lobby, si j'y suis. */
+export const salonDuLobby = () => (etat.lobby?.estMembre ? etat.lobby.channels?.[0] ?? null : null)
+
+/** Ce salon est-il celui du Lobby ? */
+export const estLeLobby = (salonId) => Boolean(salonId) && salonDuLobby()?.id === salonId
 
 export function conversationCourante() {
   if (etat.source?.type !== 'mp') return null
@@ -70,5 +85,5 @@ export function conversationCourante() {
 
 /** Serveur auquel appartient un salon. */
 export function serveurDuSalon(salonId) {
-  return etat.serveurs.find((s) => s.channels.some((c) => c.id === salonId)) ?? null
+  return serveursLisibles().find((s) => s.channels.some((c) => c.id === salonId)) ?? null
 }

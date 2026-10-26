@@ -38,6 +38,13 @@ body.app { overflow: hidden; }
 
 .discussion__sous-titre { font-size: 0.6875rem; color: var(--texte-attenue); }
 
+.discussion__quitter {
+  position: absolute;
+  right: 4rem;
+  width: 2.5rem; height: 2.5rem;
+  border-radius: 50%;
+}
+
 .discussion__jeu {
   position: absolute;
   right: 1rem;

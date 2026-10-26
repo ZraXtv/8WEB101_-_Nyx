@@ -6,7 +6,7 @@
  * (amis, serveurs, sport, jeu, profil) vit dans son propre fichier.
  */
 
-import { etat, ecoute, emet, serveurCourant, salonCourant, conversationCourante, serveurDuSalon } from './etat.js'
+import { etat, ecoute, emet, serveurCourant, salonCourant, conversationCourante, serveurDuSalon, salonDuLobby, estLeLobby } from './etat.js'
 import { chargerTout } from './donnees.js'
 import { exigeConnexion, deconnexion } from './auth.js'
 import { $, $$, el, vide, alerte, avatar, heure, quand } from './util.js'
@@ -52,11 +52,11 @@ async function demarrer() {
   conversation.memoriseAuteur(etat.moi)
 
   // Premier fil ouvert : le premier salon du premier serveur, s'il y en a un.
+  // Au démarrage : le premier serveur, sinon le Lobby, sinon l'accueil.
   const premierServeur = etat.serveurs[0] ?? null
   etat.serveurId = premierServeur?.id ?? null
-  etat.source = premierServeur?.channels?.[0]
-    ? { type: 'salon', id: premierServeur.channels[0].id }
-    : null
+  const premierSalon = premierServeur?.channels?.[0] ?? salonDuLobby()
+  etat.source = premierSalon ? { type: 'salon', id: premierSalon.id } : null
 
   initialiserTheme()
 
@@ -83,7 +83,13 @@ async function demarrer() {
 /* ======================= Menu ======================= */
 
 function dessinerMenu() {
-  $('#rejoindre-lobby').hidden = !etat.lobbyARejoindre
+  /* -- Lobby : entrer, ou y revenir si on l'a quitté -- */
+  const entreeLobby = $('#ouvrir-lobby')
+  entreeLobby.hidden = !etat.lobby
+  $('#libelle-lobby').textContent = etat.lobby?.estMembre ? 'Lobby' : 'Rejoindre le Lobby'
+  const dansLeLobby = etat.source?.type === 'salon' && estLeLobby(etat.source.id)
+  entreeLobby.classList.toggle('menu__entree--actif', dansLeLobby)
+  entreeLobby.toggleAttribute('aria-current', dansLeLobby)
   // Sans la migration 0016, pas de catalogue : l'entrée reste cachée.
   $('#ouvrir-boutique').hidden = !cosmetiques.disponible
   /* -- Identité, en pied de menu -- */
@@ -233,7 +239,14 @@ function dessinerEntete() {
   const titre = $('#titre-fil')
   vide(titre)
 
-  if (salon) {
+  const lobby = Boolean(salon) && estLeLobby(salon.id)
+  $('#quitter-lobby').hidden = !lobby
+
+  if (lobby) {
+    titre.append(el('span', {}, '#'), ' Lobby')
+    $('#sous-titre-fil').textContent = 'Le salon commun de Nyx'
+    $('#champ-message').placeholder = 'Écrire dans le Lobby…'
+  } else if (salon) {
     titre.append(el('span', {}, '#'), ` ${salon.name}`)
     $('#sous-titre-fil').textContent = serveurDuSalon(salon.id)?.name ?? ''
     $('#champ-message').placeholder = `Écrire dans #${salon.name}…`
@@ -294,17 +307,19 @@ function dessinerEncart() {
   }
 
   if (serveur) {
+    const lobby = Boolean(serveur.is_lobby)
     encart.classList.add('encart--serveur')
     encart.hidden = false
-    encart.setAttribute('aria-label', 'Serveur courant')
+    encart.setAttribute('aria-label', lobby ? 'Lobby' : 'Serveur courant')
 
     const contenu = [
       el('span', { class: 'encart__serveur' },
         el('span', { 'aria-hidden': 'true', style: { color: 'var(--primaire)' } }, '#'),
-        el('span', { class: 'titre-section' }, 'Serveur')),
-      el('span', { class: 'encart__nom' }, serveur.name),
-      el('span', { class: 'encart__compte' },
-        `${serveur.channels.length} salon${serveur.channels.length > 1 ? 's' : ''}`),
+        el('span', { class: 'titre-section' }, lobby ? 'Lobby' : 'Serveur')),
+      el('span', { class: 'encart__nom' }, lobby ? 'Le salon commun' : serveur.name),
+      el('span', { class: 'encart__compte' }, lobby
+        ? `${serveur.membres.length} membre${serveur.membres.length > 1 ? 's' : ''}`
+        : `${serveur.channels.length} salon${serveur.channels.length > 1 ? 's' : ''}`),
     ]
     ligne.append(...contenu.map((n) => n.cloneNode(true)))
     tableau.append(...contenu)
@@ -388,11 +403,22 @@ function brancherInterface() {
   basculeFormulaire('#creer-salon', '#formulaire-salon')
   basculeFormulaire('#rejoindre-serveur', '#formulaire-invitation')
 
-  $('#rejoindre-lobby').addEventListener('click', async () => {
-    const lobby = etat.lobbyARejoindre
-    const probleme = await serveurs.rejoindreLobby()
-    alerte($('#erreur-invitation'), probleme)
-    if (!probleme && lobby) choisirServeur(lobby.id)
+  $('#ouvrir-lobby').addEventListener('click', async () => {
+    if (!etat.lobby?.estMembre) {
+      const probleme = await serveurs.rejoindreLobby()
+      if (probleme) { alerte($('#erreur-invitation'), probleme); return }
+    }
+    const salon = salonDuLobby()
+    if (!salon) return
+    // Le Lobby n'est pas un serveur : aucun serveur n'est sélectionné.
+    etat.serveurId = null
+    void ouvrirFil({ type: 'salon', id: salon.id })
+    fermerMenu()
+  })
+
+  $('#quitter-lobby').addEventListener('click', async () => {
+    const probleme = await serveurs.quitterLobby()
+    if (probleme) console.error('Quitter le Lobby', probleme)
   })
 
   $('#formulaire-serveur').addEventListener('submit', async (evenement) => {
@@ -504,12 +530,18 @@ ecoute('profil-change', () => {
 })
 
 ecoute('donnees-rechargees', () => {
-  // Serveur quitté (ou dont on a été exclu) : on n'a plus le droit d'en lire
+  // Serveur ou Lobby quitté (ou exclusion) : on n'a plus le droit d'en lire
   // les salons. Sans ça, l'écran restait sur un fil devenu illisible.
-  if (etat.serveurId && !etat.serveurs.some((s) => s.id === etat.serveurId)) {
+  const serveurPerdu = etat.serveurId && !etat.serveurs.some((s) => s.id === etat.serveurId)
+  const salonPerdu = etat.source?.type === 'salon' && !salonCourant()
+  if (serveurPerdu || salonPerdu) {
     const premier = etat.serveurs[0]
     if (premier) choisirServeur(premier.id)
-    else { etat.serveurId = null; void ouvrirFil(null) }
+    else {
+      etat.serveurId = null
+      const lobby = salonDuLobby()
+      void ouvrirFil(lobby ? { type: 'salon', id: lobby.id } : null)
+    }
   }
   dessinerMenu()
   dessinerEntete()
