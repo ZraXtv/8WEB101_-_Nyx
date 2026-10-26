@@ -178,10 +178,14 @@ export function dessiner() {
     + 'et n’ont aucune valeur en argent ; les objets sont purement décoratifs.'))
 }
 
-ecoute('boutique', () => {
-  const modale = $('#modale-boutique')
-  if (modale && !modale.hidden) dessiner()
-})
+// Aussi sur « paris » : le solde change hors de la boutique (pari réglé,
+// ajustement depuis le dashboard).
+for (const evenement of ['boutique', 'paris']) {
+  ecoute(evenement, () => {
+    const modale = $('#modale-boutique')
+    if (modale && !modale.hidden) dessiner()
+  })
+}
 
 export function brancher() {
   for (const bouton of $$('#sortes-boutique [data-sorte]')) {

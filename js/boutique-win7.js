@@ -145,6 +145,8 @@ async function agir(promesse) {
 }
 
 ecoute('boutique', rendre)
+// Le solde change aussi hors de la boutique : pari réglé, ajustement depuis le dashboard.
+ecoute('paris', rendre)
 
 /* ---- Interface publique ------------------------------------------------------- */
 
