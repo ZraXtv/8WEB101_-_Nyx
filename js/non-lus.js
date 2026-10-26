@@ -8,7 +8,7 @@
  */
 
 import { sb } from './supabase.js'
-import { etat } from './etat.js'
+import { etat, emet } from './etat.js'
 
 /** `salon:<id>` ou `mp:<id>` → nombre de messages non lus. */
 const compteurs = new Map()
@@ -29,7 +29,12 @@ function afficher() {
   let total = 0
   for (const n of compteurs.values()) total += n
   document.title = total ? `(${total > 99 ? '99+' : total}) ${titreDeBase}` : titreDeBase
+  // Le menu affiche aussi ces compteurs (points sur la barre d'icônes).
+  emet('non-lus', {})
 }
+
+/** Nombre de messages non lus d'un fil ({ type, id }). */
+export const de = (source) => compteurs.get(cle(source)) ?? 0
 
 function recu(source, ligne) {
   if (ligne.author_id === etat.moiId || sousLesYeux(source)) return
