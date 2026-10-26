@@ -22,6 +22,7 @@
 import { sb } from './supabase.js'
 import { etat, emet, ecoute } from './etat.js'
 import { $, $$, el, vide, avatar, alerte } from './util.js'
+import * as cosmetiques from './cosmetiques.js'
 
 /* ---- État ------------------------------------------------------------------ */
 
@@ -379,11 +380,15 @@ function dessinerClassement(corps) {
   }
   const liste = el('ol', { class: 'liste-nue pari-classement' })
   for (const ligne of classement) {
+    // Le classement nomme l'identifiant `profile_id` ; les cosmétiques et la
+    // carte de profil attendent `id`.
+    const profil = { ...ligne, id: ligne.profile_id }
     liste.append(el('li', { class: ligne.profile_id === etat.moiId ? 'ligne pari-classement__moi' : 'ligne' },
       el('span', { class: 'pari-classement__rang' }, String(ligne.rang)),
-      avatar({ url: ligne.avatar_url, nom: ligne.display_name, taille: 32 }),
+      cosmetiques.lienProfil(profil,
+        avatar({ url: ligne.avatar_url, nom: ligne.display_name, taille: 32, cadre: cosmetiques.cadre(profil) })),
       el('span', { class: 'ligne__texte' },
-        el('strong', {}, ligne.display_name),
+        cosmetiques.nom(profil, { balise: 'strong' }),
         el('small', {}, `@${ligne.username}`)),
       el('strong', { class: 'pari-classement__solde' }, points(ligne.solde))))
   }

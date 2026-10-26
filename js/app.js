@@ -18,10 +18,13 @@ import * as serveurs from './serveurs.js'
 import * as profil from './profil.js'
 import * as sport from './sport.js'
 import * as paris from './paris.js'
+import * as boutique from './boutique.js'
+import * as carte from './carte-profil.js'
 import * as jeu from './puissance4.js'
 import { dessinerFil } from './vue-messages.js'
 import { matchEnLigne, matchEmpile } from './vue-scores.js'
 import { construireChoix, initialiser as initialiserTheme } from './theme.js'
+import * as cosmetiques from './cosmetiques.js'
 
 /* ======================= Démarrage ======================= */
 
@@ -62,6 +65,7 @@ async function demarrer() {
   profil.brancher()
   sport.brancher()
   paris.brancher()
+  boutique.brancher()
 
   dessinerMenu()
   await ouvrirFil(etat.source)
@@ -80,14 +84,17 @@ async function demarrer() {
 
 function dessinerMenu() {
   $('#rejoindre-lobby').hidden = !etat.lobbyARejoindre
+  // Sans la migration 0016, pas de catalogue : l'entrée reste cachée.
+  $('#ouvrir-boutique').hidden = !cosmetiques.disponible
   /* -- Identité, en pied de menu -- */
   const boite = $('#avatar-menu')
   vide(boite)
   boite.append(avatar({
     url: etat.moi?.avatar_url, nom: etat.moi?.display_name,
-    taille: 32, enLigne: presence.estEnLigne(etat.moiId),
+    taille: 32, enLigne: presence.estEnLigne(etat.moiId), cadre: cosmetiques.cadre(etat.moi),
   }))
-  $('#nom-menu').textContent = etat.moi?.display_name ?? '—'
+  vide($('#nom-menu'))
+  $('#nom-menu').append(etat.moi ? cosmetiques.nom(etat.moi) : '—')
   $('#pseudo-menu').textContent = etat.moi ? `@${etat.moi.username}` : ''
 
   /* -- Pastille des demandes d'amis reçues -- */
@@ -114,7 +121,7 @@ function dessinerMenu() {
     bouton.append(
       avatar({
         url: conv.autre.avatar_url, nom: conv.autre.display_name,
-        taille: 28, enLigne: presence.estEnLigne(conv.autre.id),
+        taille: 28, enLigne: presence.estEnLigne(conv.autre.id), cadre: cosmetiques.cadre(conv.autre),
       }),
       el('span', {}, conv.autre.display_name),
     )
@@ -368,6 +375,7 @@ function brancherInterface() {
   $('#ouvrir-amis').addEventListener('click', () => { amis.dessiner(); ouvrirModale('#modale-amis') })
   $('#ouvrir-sport').addEventListener('click', () => { void sport.ouvrirFenetre(); ouvrirModale('#modale-sport') })
   $('#ouvrir-paris').addEventListener('click', () => { void paris.ouvrirFenetre(); ouvrirModale('#modale-paris') })
+  $('#ouvrir-boutique').addEventListener('click', ouvrirBoutique)
   $('#gerer-serveur').addEventListener('click', () => { serveurs.ouvrir(); ouvrirModale('#modale-serveur') })
   $('#ouvrir-jeu').addEventListener('click', () => { jeu.dessiner(); ouvrirModale('#modale-jeu') })
   $('#ouvrir-apparence').addEventListener('click', () => {
@@ -514,6 +522,27 @@ ecoute('ouvrir-fil', (source) => {
 })
 
 ecoute('scores', dessinerEncart)
+
+/* -- Boutique et carte de profil -- */
+
+/** Une seule fenêtre à la fois : la carte s'ouvre souvent depuis une autre. */
+function fermerModales() {
+  for (const modale of $$('.modale')) modale.hidden = true
+}
+
+function ouvrirBoutique() {
+  fermerModales()
+  void boutique.ouvrirFenetre()
+  ouvrirModale('#modale-boutique')
+}
+
+ecoute('ouvrir-boutique', ouvrirBoutique)
+
+ecoute('ouvrir-carte', (profileId) => {
+  fermerModales()
+  void carte.ouvrir(profileId)
+  ouvrirModale('#modale-carte')
+})
 
 // Solde en pastille dans le menu ; l'entrée n'apparaît qu'une fois les paris disponibles.
 ecoute('points', (portefeuille) => {

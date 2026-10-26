@@ -11,6 +11,7 @@
 
 import { etat } from './etat.js'
 import { el, vide, avatar, heure } from './util.js'
+import * as cosmetiques from './cosmetiques.js'
 
 /**
  * Regroupe les messages consécutifs d'un même auteur, comme Discord.
@@ -62,7 +63,9 @@ function groupeMessages(groupe, { afficheAccuses, luJusqua, recuJusqua }) {
   const nom = auteur?.display_name ?? 'Membre'
 
   const corps = el('div', { class: 'groupe__corps' })
-  if (!cestMoi) corps.append(el('span', { class: 'groupe__auteur' }, nom))
+  if (!cestMoi) {
+    corps.append(cosmetiques.lienProfil(auteur, cosmetiques.nom(auteur, { texte: nom, classe: 'groupe__auteur' })))
+  }
 
   groupe.items.forEach((message, index) => {
     corps.append(el('p', {
@@ -83,7 +86,8 @@ function groupeMessages(groupe, { afficheAccuses, luJusqua, recuJusqua }) {
   if (cestMoi) return el('div', { class: 'groupe groupe--moi' }, corps)
 
   return el('div', { class: 'groupe' },
-    avatar({ url: auteur?.avatar_url, nom, taille: 32 }),
+    cosmetiques.lienProfil(auteur,
+      avatar({ url: auteur?.avatar_url, nom, taille: 32, cadre: cosmetiques.cadre(auteur) })),
     corps)
 }
 

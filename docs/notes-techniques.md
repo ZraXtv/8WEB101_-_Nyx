@@ -176,6 +176,49 @@ s'arrête tout à fait. Les crédits restants se lisent avec
 
 ---
 
+## Boutique et cosmétiques
+
+Les points des paris s'y dépensent en quatre sortes d'objets, purement
+décoratifs : **couleur** du nom (unie ou en dégradé), **cadre** d'avatar,
+**badge** à côté du nom, **bannière** de la carte de profil. Rien qui fasse
+gagner davantage aux paris : l'économie reste équitable.
+
+**Les mêmes règles que les paris.** Acheter passe par la fonction `acheter()`,
+qui verrouille le portefeuille, vérifie le solde et inscrit l'achat au
+registre `point_ledger` (type « achat », avec l'objet). Deux achats envoyés en
+même temps ne dépensent pas deux fois le même solde. L'inventaire
+(`user_items`) n'est lisible que par son propriétaire et ne s'écrit que par
+`acheter()`.
+
+**Ce qu'on porte est rangé sur le profil** (`cos_couleur`, `cos_cadre`,
+`cos_badge`, `cos_banniere`) : il est donc visible exactement par ceux qui
+voient déjà le profil — soi, les membres de ses serveurs, ses amis. On
+l'équipe en modifiant simplement son profil ; le déclencheur
+`verifier_cosmetiques` refuse un objet qu'on ne possède pas, ou porté au
+mauvais endroit (un cadre comme badge).
+
+**Le catalogue ne peut pas injecter de CSS.** `shop_items.style` n'accepte
+qu'une couleur `#rrggbb` (ou deux pour un dégradé, deux ou trois pour une
+bannière) ou une clé connue pour les cadres et les badges : une contrainte de
+la base le vérifie, et `js/cosmetiques.js` le revérifie avant tout usage.
+Ajouter une couleur ou une bannière se fait donc depuis le Table Editor ;
+ajouter un cadre ou un badge demande aussi son dessin dans `css/app.css` et
+`js/cosmetiques.js`.
+
+**La carte de profil** (`js/carte-profil.js`) s'ouvre d'un clic sur un nom ou
+un avatar, dans les messages, les listes d'amis et de membres, le classement.
+C'est la seule vitrine des bannières.
+
+**Accessibilité.** En thème *Contraste élevé*, les couleurs de pseudo sont
+ignorées ; en thèmes clairs, elles sont légèrement assombries pour rester
+lisibles. Les cadres animés s'arrêtent si le système demande de réduire les
+animations. Un achat demande deux clics (« Acheter », puis « Confirmer ? »).
+
+**Sans la migration 0016**, `js/cosmetiques.js` ne trouve pas le catalogue :
+aucune colonne `cos_*` n'est demandée, et la boutique reste cachée.
+
+---
+
 ## Lobby Général
 
 Un serveur ordinaire, que chaque compte rejoint à l'inscription : tout le

@@ -90,8 +90,12 @@ export function initiale(nom) {
  * d'objet : aucune pastille n'est alors affichée, plutôt qu'une pastille grise
  * qui affirmerait à tort que la personne est absente.
  */
-export function avatar({ url, nom, taille = 36, enLigne }) {
-  const boite = el('span', { class: 'avatar', style: { '--taille': `${taille}px` } })
+/** Cadres d'avatar connus (boutique) : toute autre valeur est ignorée. */
+const CADRES = ['argent', 'or', 'neon', 'arc-en-ciel']
+
+export function avatar({ url, nom, taille = 36, enLigne, cadre }) {
+  const classe = CADRES.includes(cadre) ? `avatar avatar--cadre avatar--cadre-${cadre}` : 'avatar'
+  const boite = el('span', { class: classe, style: { '--taille': `${taille}px` } })
 
   boite.append(
     url

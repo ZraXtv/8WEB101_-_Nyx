@@ -16,6 +16,7 @@ import { etat, emet, serveurCourant } from './etat.js'
 import { $, el, vide, alerte, avatar, echappe } from './util.js'
 import { estEnLigne } from './presence.js'
 import { recharger } from './donnees.js'
+import * as cosmetiques from './cosmetiques.js'
 
 const ROLES = { owner: 'Propriétaire', admin: 'Administrateur', member: 'Membre' }
 
@@ -238,14 +239,15 @@ export function dessiner() {
     }
 
     liste.append(el('li', { class: 'ligne' },
-      avatar({
+      cosmetiques.lienProfil(membre.profil, avatar({
         url: membre.profil.avatar_url,
         nom: membre.profil.display_name,
         taille: 36,
+        cadre: cosmetiques.cadre(membre.profil),
         enLigne: estEnLigne(membre.profileId),
-      }),
+      })),
       el('span', { class: 'ligne__texte' },
-        el('strong', {}, membre.surnom ?? membre.profil.display_name),
+        cosmetiques.nom(membre.profil, { texte: membre.surnom ?? membre.profil.display_name, balise: 'strong' }),
         el('small', {}, `@${membre.profil.username}`)),
       actions))
   }

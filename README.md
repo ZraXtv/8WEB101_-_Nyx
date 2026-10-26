@@ -66,6 +66,10 @@ réel reposent sur [Supabase](https://supabase.com).
   affiche les rencontres de ses équipes depuis toute l'application.
 - **Paris en points** — cotes réelles des bookmakers européens, bonus
   quotidien, historique de ses paris et classement général.
+- **Boutique de cosmétiques** — les points gagnés s'y dépensent en couleurs
+  de pseudo, cadres d'avatar, badges et bannières, visibles dans les
+  messages, les listes et sur la **carte de profil** qui s'ouvre d'un clic
+  sur un nom ou un avatar.
 - **Cinq thèmes** — Sombre, Clair, Contraste élevé, Terminal et Windows 7.
   Ce dernier transforme la messagerie en **bureau** : un dossier de serveurs,
   une fenêtre par serveur et un onglet par salon.
@@ -126,6 +130,9 @@ n'est pas exécutée, les paris restent simplement cachés.
 Exécute ensuite `0015_lobby_securise.sql`, qui crée le Lobby Général. Elle se
 suffit à elle-même : `0014_lobby.sql`, sa première version, n'est pas
 nécessaire, et refuse de se relancer une fois `0015` en place.
+
+Enfin, `0016_boutique.sql` ouvre la boutique. Elle s'appuie sur les
+portefeuilles des paris : exécute-la après `0013`.
 
 ### 3. La configuration
 
@@ -198,7 +205,11 @@ Le détail de chaque fichier est dans les [notes techniques](docs/notes-techniqu
   d'envoi, cote et paiement des gains sont vérifiés par la base. La clé
   The Odds API est rangée dans le coffre de Supabase et ne quitte jamais la base.
 - **Aucun argent réel.** Les points sont gratuits : ils ne s'achètent pas et ne
-  se revendent pas. Pouvoir en acheter transformerait ces paris en jeux
+  se revendent pas. La boutique vend des cosmétiques *contre* des points,
+  jamais *des* points, et rien qui fasse gagner davantage aux paris.
+- **La boutique ne se trompe pas de client.** Un achat passe par une
+  fonction en base qui vérifie le solde et l'inscrit au registre des points ;
+  porter un objet qu'on n'a pas acheté est refusé par la base. Pouvoir en acheter transformerait ces paris en jeux
   d'argent, interdits sans agrément de l'ANJ.
 - **Le Lobby est protégé par la base** : on ne peut ni le renommer, ni le
   supprimer, ni le rendre privé depuis l'application ou l'API, ni donner son

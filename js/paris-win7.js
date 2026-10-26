@@ -19,6 +19,7 @@
 import * as paris from './paris.js'
 import { etat, ecoute } from './etat.js'
 import { el, vide, avatar } from './util.js'
+import * as cosmetiques from './cosmetiques.js'
 
 /* ---- État de l'affichage ------------------------------------------------- */
 
@@ -438,8 +439,11 @@ function dessinerClassement() {
     tbody.append(el('tr', { class: ligne.profile_id === etat.moiId ? 'highlighted' : null },
       el('td', { class: 'paris7__centre' }, medaille ? icone(medaille) : String(ligne.rang)),
       el('td', {}, el('span', { class: 'paris7__joueur' },
-        avatar({ url: ligne.avatar_url, nom: ligne.display_name, taille: 20 }),
-        el('span', {}, ligne.display_name), el('small', {}, ` @${ligne.username}`),
+        cosmetiques.lienProfil({ ...ligne, id: ligne.profile_id }, avatar({
+          url: ligne.avatar_url, nom: ligne.display_name, taille: 20,
+          cadre: cosmetiques.cadre(ligne),
+        })),
+        cosmetiques.nom(ligne), el('small', {}, ` @${ligne.username}`),
         ligne.profile_id === etat.moiId ? el('small', {}, ' (toi)') : null)),
       el('td', { class: 'paris7__droite' }, `${nombre(ligne.solde)} pts`)))
   }

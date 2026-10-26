@@ -9,6 +9,7 @@
 import { sb } from './supabase.js'
 import { etat, emet } from './etat.js'
 import * as nonLus from './non-lus.js'
+import * as cosmetiques from './cosmetiques.js'
 
 const TAILLE_PAGE = 50
 
@@ -17,9 +18,12 @@ const FRAPPE_EXPIRATION = 4000
 /** On ne prévient les autres qu'une fois par intervalle, pas à chaque touche. */
 const FRAPPE_INTERVALLE = 2000
 
-const CHAMPS =
+// Une fonction, pas une constante : les colonnes de cosmétiques ne sont
+// demandées que si la migration 0016 les a créées, ce qu'on ne sait qu'après
+// le chargement du catalogue.
+const CHAMPS = () =>
   'id, author_id, content, kind, created_at, edited_at,'
-  + ' author:profiles(id, username, display_name, avatar_url)'
+  + ` author:profiles(${cosmetiques.champsProfil()})`
 
 /** Cache des auteurs : le temps réel ne transporte que author_id. */
 const auteurs = new Map()
@@ -104,7 +108,7 @@ export async function ouvrir(source) {
   // on remet ensuite dans l'ordre de lecture.
   const { data, error } = await sb
     .from(table(source))
-    .select(CHAMPS)
+    .select(CHAMPS())
     .eq(colonne(source), source.id)
     .order('created_at', { ascending: false })
     .limit(TAILLE_PAGE)
@@ -164,7 +168,7 @@ function abonner(source) {
         if (!auteur && ligne.author_id) {
           const { data } = await sb
             .from('profiles')
-            .select('id, username, display_name, avatar_url')
+            .select(cosmetiques.champsProfil())
             .eq('id', ligne.author_id)
             .single()
           if (data) {
@@ -257,7 +261,7 @@ export async function envoyer(texte) {
       ? { channel_id: source.id, author_id: etat.moiId, content: contenu }
       : { conversation_id: source.id, author_id: etat.moiId, content: contenu }
 
-  const { data, error } = await sb.from(table(source)).insert(ligne).select(CHAMPS).single()
+  const { data, error } = await sb.from(table(source)).insert(ligne).select(CHAMPS()).single()
 
   if (error) {
     console.error('Envoi du message', error)

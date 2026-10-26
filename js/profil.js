@@ -10,6 +10,7 @@ import { sb } from './supabase.js'
 import { etat, emet } from './etat.js'
 import { $, alerte, avatar, vide } from './util.js'
 import { validerPseudo, validerNomAffiche, validerBio } from './auth.js'
+import * as cosmetiques from './cosmetiques.js'
 
 /** Doit rester aligné sur `allowed_mime_types` du bucket (migration 0003). */
 const TYPES = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' }
@@ -41,7 +42,7 @@ function dessinerApercu() {
   vide(boite)
 
   const url = urlApercu ?? (suppression ? null : etat.moi?.avatar_url)
-  boite.append(avatar({ url, nom: etat.moi?.display_name, taille: 64 }))
+  boite.append(avatar({ url, nom: etat.moi?.display_name, taille: 64, cadre: cosmetiques.cadre(etat.moi) }))
 }
 
 export function ouvrir() {

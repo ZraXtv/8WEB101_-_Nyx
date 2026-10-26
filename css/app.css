@@ -928,3 +928,169 @@ body.app { overflow: hidden; }
 .pari-classement__moi { border-radius: var(--rayon); background: color-mix(in oklch, var(--primaire) 12%, transparent); }
 
 .paris-mention { margin-top: 0.25rem; font-size: 0.6875rem; }
+
+/* ======================= Cosmétiques ======================= */
+
+/* Nom en couleur, suivi de son badge. */
+.nom-cos { display: inline-flex; align-items: center; gap: 0.3em; min-width: 0; max-width: 100%; }
+.nom-cos__texte { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nom-cos__texte--degrade {
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.badge-cos { display: inline-block; flex: none; vertical-align: -2px; }
+
+/* Thèmes clairs : les couleurs vives des noms y sont un peu assombries,
+   sinon un pseudo « Or » serait illisible sur fond blanc. */
+:root[data-theme='clair'] .nom-cos__texte,
+:root[data-theme='win7'] .nom-cos__texte { filter: brightness(0.78) saturate(1.15); }
+
+/* Contraste élevé : la lisibilité passe avant la décoration. */
+:root[data-theme='contraste'] .nom-cos__texte {
+  color: inherit !important;
+  background: none !important;
+  filter: none;
+}
+
+/* Cadres d'avatar : un anneau, séparé de la photo par un liseré de la couleur du fond. */
+.avatar--cadre { border-radius: 50%; isolation: isolate; }
+.avatar--cadre-argent { box-shadow: 0 0 0 2px var(--carte), 0 0 0 4px #c3cad4, 0 0 0 5px #7d8794; }
+.avatar--cadre-or     { box-shadow: 0 0 0 2px var(--carte), 0 0 0 4px #f5c542, 0 0 0 5px #b8860b, 0 0 8px 3px #f5c54266; }
+.avatar--cadre-neon {
+  box-shadow: 0 0 0 2px var(--carte), 0 0 0 4px #e599f7, 0 0 12px 4px #be4bdb;
+  animation: cadre-neon 2.4s ease-in-out infinite alternate;
+}
+.avatar--cadre-arc-en-ciel::before {
+  position: absolute;
+  inset: -4px;
+  z-index: -1;
+  border-radius: 50%;
+  background: conic-gradient(#ff6b6b, #fcc419, #51cf66, #22b8cf, #845ef7, #f06595, #ff6b6b);
+  content: '';
+  animation: cadre-tourne 6s linear infinite;
+}
+.avatar--cadre-arc-en-ciel .avatar__image,
+.avatar--cadre-arc-en-ciel .avatar__initiale { box-shadow: 0 0 0 2px var(--carte); }
+
+@keyframes cadre-neon { to { box-shadow: 0 0 0 2px var(--carte), 0 0 0 4px #f3d9fa, 0 0 18px 6px #da77f2; } }
+@keyframes cadre-tourne { to { transform: rotate(1turn); } }
+@media (prefers-reduced-motion: reduce) {
+  .avatar--cadre-neon, .avatar--cadre-arc-en-ciel::before { animation: none; }
+}
+
+/* Nom ou avatar cliquable : ouvre la carte de profil, sans en avoir l'air. */
+.lien-profil {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: var(--rayon);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+.lien-profil:hover .nom-cos__texte { text-decoration: underline; }
+.lien-profil:focus-visible { outline: 2px solid var(--anneau); outline-offset: 2px; }
+
+/* ======================= Carte de profil ======================= */
+
+.modale__boite.carte-profil {
+  position: relative;
+  max-width: 21rem;
+  overflow: hidden;
+}
+.carte-profil__fermer {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 2;
+  border-radius: 50%;
+  background: color-mix(in oklch, black 35%, transparent);
+  color: #fff;
+}
+.carte-profil__banniere {
+  height: 6rem;
+  background: linear-gradient(135deg, var(--primaire), var(--secondaire));
+  background-size: cover;
+}
+.carte-profil__corps {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  padding: 0 1.25rem 1.25rem;
+}
+.carte-profil__avatar {
+  margin-top: -2.75rem;
+  padding: 4px;
+  border-radius: 50%;
+  background: var(--carte);
+}
+/* À 80 px, la pastille de présence proportionnelle masquerait le cadre. */
+.carte-profil__avatar .avatar__etat { right: 2px; bottom: 2px; width: 1.125rem; height: 1.125rem; box-shadow: 0 0 0 3px var(--carte); }
+.carte-profil__nom { margin-top: 0.5rem; font-family: var(--police-titre); font-size: 1.25rem; font-weight: 700; }
+.carte-profil__pseudo, .carte-profil__presence, .carte-profil__depuis { color: var(--texte-attenue); font-size: 0.8125rem; }
+.carte-profil__bio {
+  align-self: stretch;
+  margin-top: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--rayon);
+  background: var(--secondaire);
+  font-size: 0.875rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.carte-profil__depuis { margin-top: 0.25rem; }
+.carte-profil__action { align-self: stretch; margin-top: 0.75rem; }
+.carte-profil__attente { padding: 2rem 1.25rem; color: var(--texte-attenue); text-align: center; }
+
+/* ======================= Boutique ======================= */
+
+.boutique-grille {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: 0.75rem;
+}
+.article {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--bordure);
+  border-top: 3px solid var(--rarete, var(--bordure));
+  border-radius: var(--rayon);
+  background: var(--carte);
+}
+.article--commun     { --rarete: #868e96; }
+.article--rare       { --rarete: #339af0; }
+.article--epique     { --rarete: #9c36b5; }
+.article--legendaire { --rarete: #f59f00; }
+.article--porte { box-shadow: 0 0 0 2px var(--primaire); }
+.article__titre { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.25rem; }
+.article__titre strong { font-size: 0.875rem; }
+.article__rarete { color: var(--rarete); font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; }
+.article__description { flex: 1; color: var(--texte-attenue); font-size: 0.75rem; }
+.article__pied { display: flex; flex-direction: column; gap: 0.375rem; }
+.article__prix { font-size: 0.8125rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.article__prix small { color: var(--texte-attenue); font-weight: 400; }
+.article__prix--possede { color: var(--succes); }
+.article__pied .bouton { width: 100%; min-height: 2.25rem; font-size: 0.8125rem; white-space: nowrap; }
+
+/* Aperçu d'un objet, sur son propre profil. */
+.apercu-cos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 4.5rem;
+  padding: 0.5rem;
+  border-radius: var(--rayon);
+  background: var(--secondaire);
+}
+.apercu-cos__nom { font-family: var(--police-titre); font-size: 1rem; font-weight: 700; }
+.apercu-cos--banniere { justify-content: flex-start; padding-left: 0.75rem; background-size: cover; }

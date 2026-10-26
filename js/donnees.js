@@ -11,8 +11,8 @@
 
 import { sb } from './supabase.js'
 import { etat } from './etat.js'
+import * as cosmetiques from './cosmetiques.js'
 
-const CHAMPS_PROFIL = 'id, username, display_name, avatar_url'
 
 /**
  * Serveurs visibles. La RLS en renvoie davantage que ceux dont je suis
@@ -22,7 +22,7 @@ const CHAMPS_PROFIL = 'id, username, display_name, avatar_url'
  * la colonne n'existe pas et la demander ferait échouer tout le chargement.
  * On se replie alors sur la requête d'avant.
  */
-async function chargerServeurs() {
+async function chargerServeurs(CHAMPS_PROFIL) {
   const requete = (colonnes) => sb.from('servers')
     .select(
       `id, name, icon_url, owner_id, is_public, ${colonnes}invite_code,`
@@ -39,10 +39,15 @@ async function chargerServeurs() {
 }
 
 export async function chargerTout() {
+  // Le catalogue d'abord : il dit si les colonnes de cosmétiques existent,
+  // et donc ce qu'on peut demander pour chaque profil.
+  await cosmetiques.chargerCatalogue()
+  const CHAMPS_PROFIL = cosmetiques.champsProfil()
+
   const [profil, serveurs, amities, conversations] = await Promise.all([
     sb.from('profiles').select('*').eq('id', etat.moiId).single(),
 
-    chargerServeurs(),
+    chargerServeurs(CHAMPS_PROFIL),
 
     sb.from('friendships')
       .select(

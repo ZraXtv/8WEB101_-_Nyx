@@ -33,6 +33,7 @@
     <symbol id="i-fermer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></symbol>
     <symbol id="i-diese" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18"/></symbol>
     <symbol id="i-amis" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+    <symbol id="i-boutique" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/></symbol>
     <symbol id="i-jetons" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="9" cy="7" rx="6" ry="3"/><path d="M3 7v4c0 1.66 2.69 3 6 3s6-1.34 6-3V7"/><path d="M3 11v4c0 1.66 2.69 3 6 3 1.1 0 2.13-.15 3-.41"/><ellipse cx="17" cy="15" rx="4" ry="2"/><path d="M13 15v3c0 1.1 1.79 2 4 2s4-.9 4-2v-3"/></symbol>
     <symbol id="i-trophee" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></symbol>
     <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
@@ -83,6 +84,11 @@
       <svg width="16" height="16"><use href="#i-jetons"/></svg>
       <span>Paris</span>
       <span class="menu__points" id="solde-menu"></span>
+    </button>
+
+    <button class="menu__entree" id="ouvrir-boutique" hidden>
+      <svg width="16" height="16"><use href="#i-boutique"/></svg>
+      <span>Boutique</span>
     </button>
 
     <button class="menu__entree" id="ouvrir-apparence">
@@ -355,6 +361,40 @@
       <p class="alerte alerte--erreur" id="message-paris" role="alert" hidden></p>
     </div>
     <div class="modale__corps" id="corps-paris"></div>
+  </div>
+</div>
+
+<!-- Carte de profil : s'ouvre en cliquant sur un nom ou un avatar. -->
+<div class="modale" id="modale-carte" hidden>
+  <div class="modale__boite carte-profil" role="dialog" aria-modal="true" aria-label="Profil">
+    <button class="bouton-icone carte-profil__fermer" data-fermer aria-label="Fermer">
+      <svg width="20" height="20"><use href="#i-fermer"/></svg>
+    </button>
+    <div id="corps-carte"></div>
+  </div>
+</div>
+
+<div class="modale" id="modale-boutique" hidden>
+  <div class="modale__boite modale__boite--large" role="dialog" aria-modal="true" aria-labelledby="titre-boutique">
+    <div class="modale__entete">
+      <div>
+        <h2 class="modale__titre" id="titre-boutique">Boutique</h2>
+        <p class="modale__sous-titre">Dépense tes points en cosmétiques. Solde : <strong id="solde-boutique">—</strong></p>
+      </div>
+      <button class="bouton-icone" data-fermer aria-label="Fermer">
+        <svg width="20" height="20"><use href="#i-fermer"/></svg>
+      </button>
+    </div>
+    <div class="paris-tete">
+      <div class="puces" id="sortes-boutique" role="group" aria-label="Catégories">
+        <button type="button" class="puce" data-sorte="couleur" aria-pressed="true">Couleurs</button>
+        <button type="button" class="puce" data-sorte="cadre" aria-pressed="false">Cadres</button>
+        <button type="button" class="puce" data-sorte="badge" aria-pressed="false">Badges</button>
+        <button type="button" class="puce" data-sorte="banniere" aria-pressed="false">Bannières</button>
+      </div>
+      <p class="alerte alerte--erreur" id="message-boutique" role="alert" hidden></p>
+    </div>
+    <div class="modale__corps" id="corps-boutique"></div>
   </div>
 </div>
 

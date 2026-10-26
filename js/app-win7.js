@@ -35,6 +35,9 @@ import * as profil from './profil.js'
 import * as sport from './sport.js'
 import * as paris from './paris.js'
 import * as parisWin7 from './paris-win7.js'
+import * as boutiqueWin7 from './boutique-win7.js'
+import * as carte from './carte-profil.js'
+import * as cosmetiques from './cosmetiques.js'
 import * as jeu from './puissance4.js'
 import { construireChoix } from './theme.js'
 
@@ -104,6 +107,11 @@ function dessinerBureau() {
     paris.portefeuille && icone({
       libelle: 'Paris', image: 'img/win7/jetons.svg',
       onOuvrir: ouvrirFenetreParis,
+    }),
+    // Seulement si la migration 0016 a été exécutée.
+    cosmetiques.disponible && icone({
+      libelle: 'Boutique', image: 'img/win7/boutique.svg',
+      onOuvrir: ouvrirFenetreBoutique,
     }),
     icone({
       libelle: 'Mon profil', image: 'img/win7/utilisateur-cle.svg',
@@ -247,6 +255,24 @@ function ouvrirFenetreParis() {
 
   fenetre.ouvrir()
   void parisWin7.charger()
+}
+
+/** La boutique : sa propre fenêtre d'application, comme les paris. */
+function ouvrirFenetreBoutique() {
+  let fenetre = fenetres.get('boutique')
+
+  if (!fenetre) {
+    const coquille = creerCoquille({
+      cle: 'boutique', titre: 'Boutique', icone: 'img/win7/boutique.svg', classeCorps: 'boutique7',
+      style: { width: '660px', height: 'min(600px, calc(100vh - 110px))' },
+    })
+    fenetre = coquille.fenetre
+    boutiqueWin7.installer(coquille.corps)
+    rafraichirBarre()
+  }
+
+  fenetre.ouvrir()
+  void boutiqueWin7.charger()
 }
 
 /** « À propos des paris », une petite boîte comme celles de Windows. */
@@ -755,6 +781,7 @@ ecoute('donnees-rechargees', () => {
   // le faire disparaître sous les doigts.
   const explorateurOuvert = fenetres.has('serveurs')
   const parisOuverts = fenetres.has('paris')
+  const boutiqueOuverte = fenetres.has('boutique')
 
   // Les fenêtres reflètent l'ancien état : on repart du bureau.
   //
@@ -772,6 +799,20 @@ ecoute('donnees-rechargees', () => {
 
   if (explorateurOuvert) ouvrirExplorateur()
   if (parisOuverts) ouvrirFenetreParis()
+  if (boutiqueOuverte) ouvrirFenetreBoutique()
+})
+
+ecoute('ouvrir-boutique', () => {
+  for (const modale of $$('.modale')) modale.hidden = true
+  ouvrirFenetreBoutique()
+})
+
+// La carte de profil est une fenêtre modale partagée avec la disposition
+// classique ; on ferme d'abord celle d'où l'on vient (membres, amis…).
+ecoute('ouvrir-carte', (profileId) => {
+  for (const modale of $$('.modale')) modale.hidden = true
+  void carte.ouvrir(profileId)
+  ouvrirModale('#modale-carte')
 })
 
 ecoute('ouvrir-fil', (source) => {

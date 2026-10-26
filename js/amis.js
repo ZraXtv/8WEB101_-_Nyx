@@ -12,6 +12,7 @@ import { etat, emet } from './etat.js'
 import { $, el, vide, alerte, avatar } from './util.js'
 import { estEnLigne } from './presence.js'
 import { recharger } from './donnees.js'
+import * as cosmetiques from './cosmetiques.js'
 
 let occupe = false
 
@@ -80,16 +81,17 @@ async function rafraichir() {
 
 function ligne(entree, actions) {
   return el('li', { class: 'ligne' },
-    avatar({
+    cosmetiques.lienProfil(entree.profil, avatar({
       url: entree.profil.avatar_url,
       nom: entree.profil.display_name,
       taille: 36,
+      cadre: cosmetiques.cadre(entree.profil),
       // Pastille seulement pour les amitiés acceptées : pour une demande en
       // attente, la présence n'a pas encore de sens.
       enLigne: entree.genre === 'ami' ? estEnLigne(entree.profil.id) : undefined,
-    }),
+    })),
     el('span', { class: 'ligne__texte' },
-      el('strong', {}, entree.profil.display_name),
+      cosmetiques.nom(entree.profil, { balise: 'strong' }),
       el('small', {}, `@${entree.profil.username}`)),
     el('span', { class: 'ligne__actions' }, ...actions),
   )

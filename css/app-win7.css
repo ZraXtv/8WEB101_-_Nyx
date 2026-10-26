@@ -645,3 +645,116 @@ body { overflow: hidden; }
 }
 .paris7__quand { display: block; color: #6b7785; font-size: 11px; }
 .paris7__table--compacte .paris7__resultat { font-size: 11px; }
+
+/* ======================= Boutique et carte de profil ======================= */
+
+/* 7.css habille tout <button> : les noms et avatars cliquables (dans les
+   fenêtres de discussion) doivent rester de simples textes et images. */
+.window .lien-profil,
+.modale .lien-profil {
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+.window .lien-profil::before, .window .lien-profil::after,
+.modale .lien-profil::before, .modale .lien-profil::after { content: none; }
+
+.window-body.boutique7 {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  background: var(--w7-surface, #f0f0f0);
+  color: #1b1b1b;
+}
+.boutique7__bandeau {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #cfdbe6;
+  background: linear-gradient(to bottom, #fdfeff 0%, #fbeef6 55%, #f6e1ee 100%);
+}
+.boutique7__bandeau img { flex: none; filter: drop-shadow(0 1px 1px #0002); }
+.boutique7__solde { display: flex; flex: 1; flex-direction: column; }
+.boutique7__solde span { color: #5b6b7c; font-size: 11px; }
+.boutique7__solde strong { color: #1e395b; font-size: 19px; font-weight: 400; font-variant-numeric: tabular-nums; }
+
+.boutique7__contenu { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; padding: 8px 10px 0; }
+.boutique7 menu[role='tablist'] { flex: 0 0 auto; }
+.boutique7__panneau.boutique7__panneau {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  margin-bottom: 8px;
+  padding: 10px;
+}
+
+/* Grandes icônes, comme dans l'explorateur. */
+.boutique7__grille {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  align-content: start;
+  gap: 6px;
+  min-height: 120px;
+  padding: 8px;
+  overflow: auto;
+  border: 1px solid #c0c1cd;
+  background: #fff;
+}
+.boutique7__tuile {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  cursor: default;
+  text-align: center;
+}
+.boutique7__tuile:hover { border-color: #b9dcf5; background: linear-gradient(to bottom, #f4fbff, #e2f2fd); }
+/* Sélection façon explorateur, et non le bleu plein de 7.css pour les
+   [role=option] : sur ce bleu, l'aperçu du nom devenait illisible. */
+.window .boutique7__grille .boutique7__tuile[aria-selected='true'] {
+  border-color: #7da2ce;
+  background: linear-gradient(to bottom, #e3f1fd, #cde3f8);
+  color: inherit;
+}
+.boutique7__tuile .apercu-cos { min-height: 56px; background: #f3f5f8; }
+.boutique7__nom { overflow: hidden; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.boutique7__prix { color: #4b5866; font-size: 11px; font-variant-numeric: tabular-nums; }
+.boutique7__prix--possede { color: #25731a; font-weight: 600; }
+.boutique7__tuile--rare .boutique7__nom { color: #1c64b8; }
+.boutique7__tuile--epique .boutique7__nom { color: #7b2a99; }
+.boutique7__tuile--legendaire .boutique7__nom { color: #b36b00; }
+.boutique7__vide, .boutique7__consigne { margin: 4px 0; color: #5b6b7c; }
+
+.boutique7__apercu.boutique7__apercu { flex: 0 0 auto; margin: 0; }
+.boutique7__detail { display: flex; align-items: flex-start; gap: 12px; }
+.boutique7__detail > .apercu-cos { flex: 0 0 160px; min-height: 84px; background: #f3f5f8; }
+.boutique7__texte { display: flex; flex: 1; flex-direction: column; gap: 3px; min-width: 0; }
+.boutique7__texte strong { color: #1e395b; font-size: 13px; font-weight: 600; }
+.boutique7__texte p { margin: 0; }
+.boutique7__rarete { font-size: 10px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; }
+.boutique7__rarete--commun { color: #6b7785; }
+.boutique7__rarete--rare { color: #1c64b8; }
+.boutique7__rarete--epique { color: #7b2a99; }
+.boutique7__rarete--legendaire { color: #b36b00; }
+.boutique7__actions { display: flex; justify-content: flex-end; gap: 6px; margin-top: 6px; }
+.boutique7__message--succes { color: #25731a; }
+.boutique7__message--erreur { color: #b4271d; }
+
+.boutique7__etat.boutique7__etat { flex: 0 0 auto; margin: 0; border-left: 0; border-right: 0; border-bottom: 0; }
+
+@media (max-width: 40rem) {
+  .boutique7__detail { flex-direction: column; }
+  .boutique7__detail > .apercu-cos { flex-basis: auto; align-self: stretch; }
+}
