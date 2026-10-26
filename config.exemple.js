@@ -1,8 +1,9 @@
 /**
- * Configuration du projet.
+ * Modèle de configuration.
  *
- * COPIE CE FICHIER EN « config.js » puis renseigne tes deux valeurs.
- * config.js n'est pas versionné (voir .gitignore).
+ * Le dépôt contient déjà un config.js, qui pointe vers le projet Supabase de
+ * l'équipe. Ce modèle sert à brancher un AUTRE projet : copie-le en
+ * « config.js » (ou modifie directement celui-ci) et renseigne tes valeurs.
  *
  * Il n'y a pas de fichier .env ici : sans outil de construction, le navigateur
  * ne sait pas lire un .env. Ces valeurs arrivent donc par un fichier JavaScript

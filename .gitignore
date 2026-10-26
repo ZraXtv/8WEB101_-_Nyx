@@ -1,4 +1,13 @@
-# Configuration locale : contient l'URL et la clé de TON projet Supabase.
-# Elle est « publiable » et donc faite pour vivre dans le navigateur, mais
-# elle n'a rien à faire dans un dépôt public.
-config.js
+# config.js EST versionné, volontairement : il ne contient que l'URL du projet
+# Supabase et sa clé « publiable », faite pour le navigateur. Tout visiteur du
+# site la reçoit de toute façon ; ce sont les règles de la base (RLS) qui
+# protègent les données. La clé SECRÈTE (sb_secret_… / service_role) ne doit
+# jamais apparaître ni dans config.js, ni ailleurs dans ce dépôt.
+
+# Fichiers de secrets éventuels
+.env
+.env.*
+
+# Fichiers système
+.DS_Store
+Thumbs.db

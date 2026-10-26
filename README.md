@@ -8,6 +8,8 @@
 
 Projet fil rouge du module 8WEB101 — écrit en HTML, CSS et JavaScript, sans framework ni étape de construction.
 
+**[▶ Essayer Nyx en ligne](https://zraxtv.github.io/8WEB101_-_Nyx/)**
+
 ![HTML](https://img.shields.io/badge/HTML-E34F26?logo=html5&logoColor=white)
 ![CSS](https://img.shields.io/badge/CSS-1572B6?logo=css3&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black)
@@ -93,6 +95,10 @@ charger.
 
 ## Installation
 
+Pour simplement essayer Nyx, le plus rapide est le
+[site en ligne](https://zraxtv.github.io/8WEB101_-_Nyx/). Les étapes ci-dessous
+servent à le faire tourner sur sa machine, ou sur son propre projet Supabase.
+
 ### Prérequis
 
 - un projet [Supabase](https://supabase.com) (l'offre gratuite suffit) ;
@@ -121,17 +127,19 @@ Exécute ensuite `0015_lobby_securise.sql`, qui crée le Lobby Général. Elle s
 suffit à elle-même : `0014_lobby.sql`, sa première version, n'est pas
 nécessaire, et refuse de se relancer une fois `0015` en place.
 
-### 3. Renseigner la configuration
+### 3. La configuration
 
-```bash
-cp config.exemple.js config.js
-```
+`config.js` est fourni : il pointe vers le projet Supabase de l'équipe, et le
+site fonctionne tel quel. Il ne contient que l'URL du projet et sa **clé
+publiable**, conçue pour être lue par le navigateur : tout visiteur du site la
+reçoit, et ce sont les règles de sécurité de la base (RLS) qui protègent les
+données.
 
-Ouvre `config.js` et renseigne l'**URL** et la **clé publiable** de ton projet
-(Supabase → *Project Settings* → *API*). Ce fichier n'est pas versionné.
+Pour brancher **ton propre** projet Supabase, remplace ces deux valeurs
+(Supabase → *Project Settings* → *API*) ; `config.exemple.js` sert de modèle.
 
-> N'y mets **jamais** la clé `service_role` : elle contourne toutes les règles
-> de sécurité de la base.
+> N'y mets **jamais** la clé secrète (`sb_secret_…` ou `service_role`) : elle
+> contourne toutes les règles de sécurité de la base.
 
 ### 4. Lancer
 
@@ -150,7 +158,7 @@ Puis ouvre <http://localhost:8000>. L'extension *Live Server* de VS Code ou
 N'importe quel hébergement de fichiers statiques convient (GitHub Pages,
 Netlify, un serveur Apache…). Deux points à ne pas oublier :
 
-- le fichier `config.js` doit être présent sur l'hébergement ;
+- `config.js` est versionné : il est publié avec le reste, rien à ajouter ;
 - dans Supabase → *Authentication* → *URL Configuration*, indique l'adresse du
   site, sans quoi les liens de confirmation d'e-mail mèneraient ailleurs.
 
@@ -163,7 +171,8 @@ Netlify, un serveur Apache…). Deux points à ne pas oublier :
 ├── app.html              la messagerie, disposition classique
 ├── app-win7.html         la messagerie, disposition bureau (thème Windows 7)
 ├── *-sombre.html         ancienne version sombre des trois premières pages
-├── config.exemple.js     modèle de configuration, à copier en config.js
+├── config.js             configuration : URL et clé publiable du projet Supabase
+├── config.exemple.js     modèle, pour brancher un autre projet Supabase
 ├── css/                  styles (thèmes, messagerie, bureau…)
 ├── js/                   modules : données, temps réel, amis, serveurs, sport, paris…
 ├── migration/            les migrations SQL et le guide des paris
