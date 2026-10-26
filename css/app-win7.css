@@ -662,6 +662,28 @@ body { overflow: hidden; }
 .window .lien-profil::before, .window .lien-profil::after,
 .modale .lien-profil::before, .modale .lien-profil::after { content: none; }
 
+/* La croix ronde de la carte de profil, posée sur la bannière : sans ces
+   règles, 7.css en faisait un bouton de 75 px de large, dégradé et
+   pulsant au focus. Trois classes pour l'emporter sur son
+   `button:not(:disabled):hover`. */
+.modale .carte-profil .carte-profil__fermer {
+  width: 2rem;
+  height: 2rem;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.35);
+  box-shadow: none;
+  color: #fff;
+  animation: none;
+}
+.modale .carte-profil .carte-profil__fermer:hover { background: rgb(0 0 0 / 0.55); }
+.modale .carte-profil .carte-profil__fermer:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.modale .carte-profil .carte-profil__fermer::before,
+.modale .carte-profil .carte-profil__fermer::after { content: none; }
+
 .window-body.boutique7 {
   display: flex;
   flex-direction: column;
@@ -758,3 +780,9 @@ body { overflow: hidden; }
   .boutique7__detail { flex-direction: column; }
   .boutique7__detail > .apercu-cos { flex-basis: auto; align-self: stretch; }
 }
+
+/* « Mon profil » sur le bureau : 7.css habille aussi le lien vers la boutique
+   et donnerait un cadre gris à la section Apparence. */
+.modale .lien-texte { min-width: 0; min-height: 0; padding: 0; border: 0; background: none; box-shadow: none; }
+.modale .lien-texte::before, .modale .lien-texte::after { content: none; }
+.modale .profil-apparence { padding: 0; border: 0; box-shadow: none; }

@@ -670,6 +670,62 @@ body.app { overflow: hidden; }
 }
 .profil-photo__actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 
+/* « Mon profil » : aperçu de sa carte, tel que les autres la verront.
+   Pas d'overflow: hidden sur la carte — le halo des cadres (néon, or)
+   dépasse de l'avatar et serait rogné ; seule la bannière est arrondie. */
+.profil-carte {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon-lg);
+  background: var(--carte);
+}
+.profil-carte__banniere {
+  height: 4.5rem;
+  border-radius: calc(var(--rayon-lg) - 1px) calc(var(--rayon-lg) - 1px) 0 0;
+  background: linear-gradient(135deg, var(--primaire), var(--secondaire));
+  background-size: cover;
+}
+.profil-carte__corps { display: flex; align-items: flex-end; gap: 0.875rem; padding: 0 1rem; }
+.profil-carte__avatar {
+  flex: none;
+  margin-top: -2rem;
+  padding: 4px;
+  border-radius: 50%;
+  background: var(--carte);
+}
+.profil-carte__identite { display: flex; flex-direction: column; min-width: 0; padding-bottom: 0.25rem; }
+.profil-carte__nom { font-family: var(--police-titre); font-size: 1.125rem; font-weight: 700; }
+.profil-carte__identite small { color: var(--texte-attenue); font-size: 0.8125rem; }
+.profil-carte .profil-photo__actions { padding: 0.875rem 1rem 0; }
+
+.profil-apparence {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.profil-apparence__grille {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-top: 0.375rem;
+  font-size: 0.875rem;
+}
+.profil-apparence__grille .champ { min-height: 2.25rem; padding-block: 0.25rem; }
+.profil-apparence .aide { margin-top: 0.5rem; }
+
+/* Un bouton qui se lit comme un lien, au fil d'une phrase. */
+.lien-texte {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--primaire);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 /* ---- Code d'invitation --------------------------------------------------- */
 
 .code-invitation {

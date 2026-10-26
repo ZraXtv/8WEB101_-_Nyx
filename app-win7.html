@@ -83,22 +83,30 @@
     <div class="modale__entete">
       <div>
         <h2 class="modale__titre" id="titre-profil">Mon profil</h2>
-        <p class="modale__sous-titre">Ta photo, ton nom et ton pseudo.</p>
+        <p class="modale__sous-titre">Ce que les autres voient en cliquant sur ton nom.</p>
       </div>
       <button class="bouton-icone" data-fermer aria-label="Fermer">
         <svg width="20" height="20"><use href="#i-fermer"/></svg>
       </button>
     </div>
     <div class="modale__corps">
-      <div class="profil-photo">
-        <span id="apercu-avatar"></span>
+      <!-- Aperçu de la carte de profil, mis à jour pendant la saisie. -->
+      <div class="profil-carte" aria-label="Aperçu de ta carte de profil">
+        <div class="profil-carte__banniere" id="apercu-banniere"></div>
+        <div class="profil-carte__corps">
+          <span class="profil-carte__avatar" id="apercu-avatar"></span>
+          <div class="profil-carte__identite">
+            <span id="apercu-nom"></span>
+            <small id="apercu-pseudo"></small>
+          </div>
+        </div>
         <div class="profil-photo__actions">
           <label class="bouton bouton--discret" style="min-height:2.25rem;font-size:.8125rem">
             Changer la photo
             <input type="file" id="fichier-avatar" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
           </label>
           <button class="bouton bouton--fantome" id="retirer-avatar" type="button"
-                  style="min-height:2.25rem;font-size:.8125rem">Retirer</button>
+                  style="min-height:2.25rem;font-size:.8125rem">Retirer la photo</button>
         </div>
       </div>
 
@@ -117,6 +125,24 @@
           <textarea class="champ" id="profil-bio" name="bio" rows="3" maxlength="280"
                     style="resize:none" placeholder="Une ligne sur toi (facultatif)"></textarea>
         </div>
+
+        <!-- Visible seulement si la boutique existe (migration 0016). -->
+        <fieldset class="profil-apparence" id="profil-apparence" hidden>
+          <legend class="etiquette">Apparence</legend>
+          <div class="profil-apparence__grille">
+            <label for="porte-couleur">Couleur du nom</label>
+            <select class="champ" id="porte-couleur" data-sorte="couleur"></select>
+            <label for="porte-cadre">Cadre</label>
+            <select class="champ" id="porte-cadre" data-sorte="cadre"></select>
+            <label for="porte-badge">Badge</label>
+            <select class="champ" id="porte-badge" data-sorte="badge"></select>
+            <label for="porte-banniere">Bannière</label>
+            <select class="champ" id="porte-banniere" data-sorte="banniere"></select>
+          </div>
+          <p class="aide">Tu ne vois ici que tes objets. Les autres s’obtiennent dans la
+            <button type="button" class="lien-texte" id="profil-vers-boutique">boutique</button>.</p>
+        </fieldset>
+
         <p class="alerte" id="message-profil" role="alert" hidden></p>
       </form>
     </div>

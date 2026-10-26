@@ -1,5 +1,9 @@
 /**
- * Profil : photo, pseudo, nom affiché, présentation.
+ * Profil : photo, pseudo, nom affiché, présentation, et ce qu'on porte
+ * (cosmétiques achetés en boutique).
+ *
+ * La fenêtre s'ouvre sur un aperçu de sa carte de profil, redessiné à chaque
+ * frappe : on voit ce que les autres verront avant d'enregistrer.
  *
  * La photo part dans le bucket `avatars`, dans un dossier portant l'identifiant
  * de son propriétaire — c'est ce que vérifient les politiques de stockage :
@@ -8,9 +12,10 @@
 
 import { sb } from './supabase.js'
 import { etat, emet } from './etat.js'
-import { $, alerte, avatar, vide } from './util.js'
+import { $, $$, el, alerte, avatar, vide } from './util.js'
 import { validerPseudo, validerNomAffiche, validerBio } from './auth.js'
 import * as cosmetiques from './cosmetiques.js'
+import * as boutique from './boutique.js'
 
 /** Doit rester aligné sur `allowed_mime_types` du bucket (migration 0003). */
 const TYPES = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' }
@@ -36,13 +41,55 @@ function libererApercu() {
   }
 }
 
+/** Le profil tel qu'il serait enregistré : champs en cours de saisie compris. */
+function brouillon() {
+  const profil = {
+    ...etat.moi,
+    username: $('#profil-pseudo')?.value.trim().toLowerCase() || etat.moi?.username,
+    display_name: $('#profil-nom')?.value.trim() || etat.moi?.display_name,
+    avatar_url: urlApercu ?? (suppression ? null : etat.moi?.avatar_url),
+  }
+  for (const choix of $$('#profil-apparence select')) {
+    profil[`cos_${choix.dataset.sorte}`] = choix.value || null
+  }
+  return profil
+}
+
 function dessinerApercu() {
   const boite = $('#apercu-avatar')
   if (!boite) return
-  vide(boite)
+  const profil = brouillon()
 
-  const url = urlApercu ?? (suppression ? null : etat.moi?.avatar_url)
-  boite.append(avatar({ url, nom: etat.moi?.display_name, taille: 64, cadre: cosmetiques.cadre(etat.moi) }))
+  vide(boite)
+  boite.append(avatar({ url: profil.avatar_url, nom: profil.display_name, taille: 64, cadre: cosmetiques.cadre(profil) }))
+
+  const nom = $('#apercu-nom')
+  vide(nom)
+  nom.append(cosmetiques.nom(profil, { classe: 'profil-carte__nom' }))
+  $('#apercu-pseudo').textContent = `@${profil.username ?? ''}`
+
+  $('#apercu-banniere').style.backgroundImage = cosmetiques.fondBanniere(profil) ?? ''
+}
+
+/** Les listes « Apparence » : « Aucun », puis les objets possédés de chaque sorte. */
+async function remplirApparence() {
+  const bloc = $('#profil-apparence')
+  if (!bloc) return
+  bloc.hidden = !cosmetiques.disponible
+  if (!cosmetiques.disponible) return
+
+  await boutique.chargerInventaire()
+  for (const choix of $$('#profil-apparence select')) {
+    const sorte = choix.dataset.sorte
+    const actuel = etat.moi?.[`cos_${sorte}`] ?? ''
+    const objets = cosmetiques.catalogue.filter((o) => o.kind === sorte && boutique.inventaire.has(o.id))
+    vide(choix)
+    choix.append(el('option', { value: '' }, objets.length ? 'Aucun' : 'Aucun objet — voir la boutique'),
+      ...objets.map((o) => el('option', { value: o.id }, o.name)))
+    choix.value = actuel
+    choix.disabled = !objets.length
+  }
+  dessinerApercu()
 }
 
 export function ouvrir() {
@@ -55,6 +102,7 @@ export function ouvrir() {
   $('#profil-bio').value = etat.moi?.bio ?? ''
   alerte($('#message-profil'), null)
   dessinerApercu()
+  void remplirApparence()
 }
 
 async function enregistrer() {
@@ -76,6 +124,10 @@ async function enregistrer() {
   bouton.textContent = 'Enregistrement…'
 
   const champs = { username: pseudo, display_name: nom, bio: bio || null }
+  // L'apparence part avec le reste ; la base refuse un objet non possédé.
+  if (cosmetiques.disponible) {
+    for (const choix of $$('#profil-apparence select')) champs[`cos_${choix.dataset.sorte}`] = choix.value || null
+  }
   const ancienChemin = cheminDepuisUrl(etat.moi?.avatar_url ?? null)
 
   try {
@@ -153,6 +205,11 @@ export function brancher() {
     urlApercu = URL.createObjectURL(fichier)
     dessinerApercu()
   })
+
+  // Aperçu en direct : nom, pseudo et apparence.
+  for (const champ of ['#profil-pseudo', '#profil-nom']) $(champ)?.addEventListener('input', dessinerApercu)
+  for (const choix of $$('#profil-apparence select')) choix.addEventListener('change', dessinerApercu)
+  $('#profil-vers-boutique')?.addEventListener('click', () => emet('ouvrir-boutique'))
 
   $('#retirer-avatar')?.addEventListener('click', () => {
     libererApercu()
