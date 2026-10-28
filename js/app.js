@@ -92,13 +92,15 @@ let vueMenu = null
 
 function vueValide(vue) {
   if (vue === 'mp' || vue === 'nouveau') return true
-  if (vue === 'lobby') return Boolean(etat.lobby && !etat.lobby.estMembre)
+  if (vue === 'lobby') return Boolean(etat.lobby)
   return etat.serveurs.some((s) => s.id === vue)
 }
 
 function vueDuMenu() {
   if (vueValide(vueMenu)) return vueMenu
   if (etat.source?.type === 'mp') return 'mp'
+  // Dans le Lobby : c'est lui qui est choisi, pas le dernier serveur visité.
+  if (etat.source?.type === 'salon' && estLeLobby(etat.source.id)) return 'lobby'
   if (etat.serveurId && vueValide(etat.serveurId)) return etat.serveurId
   return etat.serveurs[0]?.id ?? 'mp'
 }
@@ -134,8 +136,7 @@ function dessinerMenu() {
   /* -- Barre d'icônes : Lobby, messages privés, serveurs, « + » -- */
   const lobby = $('#ouvrir-lobby')
   lobby.hidden = !etat.lobby
-  const dansLeLobby = etat.source?.type === 'salon' && estLeLobby(etat.source.id)
-  lobby.classList.toggle('rail__bouton--actif', dansLeLobby || vue === 'lobby')
+  lobby.classList.toggle('rail__bouton--actif', vue === 'lobby')
   lobby.setAttribute('aria-label', etat.lobby?.estMembre ? 'Lobby' : 'Rejoindre le Lobby')
   lobby.title = lobby.getAttribute('aria-label')
   point(lobby, Boolean(salonDuLobby()) && nonLus.de({ type: 'salon', id: salonDuLobby().id }) > 0)
@@ -152,6 +153,13 @@ function dessinerMenu() {
 
   /* -- Panneau : une seule section à la fois -- */
   $('#panneau-lobby').hidden = vue !== 'lobby'
+  const membre = Boolean(etat.lobby?.estMembre)
+  $('#rejoindre-lobby').hidden = membre
+  $('#aller-lobby').hidden = !membre
+  $('#quitter-lobby-menu').hidden = !membre
+  const nb = etat.lobby?.membres?.length ?? 0
+  $('#membres-lobby').hidden = !membre
+  $('#membres-lobby').textContent = `${nb} membre${nb > 1 ? 's' : ''}`
   $('#bloc-mp').hidden = vue !== 'mp'
   $('#panneau-nouveau').hidden = vue !== 'nouveau'
   const serveur = etat.serveurs.find((s) => s.id === vue) ?? null
@@ -236,7 +244,17 @@ async function ouvrirFil(source) {
 
   if (source?.type === 'salon') {
     const serveur = serveurDuSalon(source.id)
-    if (serveur) etat.serveurId = serveur.id
+    // Le Lobby n'est pas un serveur : il ne devient jamais « serveur courant ».
+    if (serveur) etat.serveurId = serveur.is_lobby ? null : serveur.id
+  }
+
+  // Le menu suit le fil affiché : sans ça, il restait sur le dernier serveur
+  // cliqué (en entrant dans le Lobby, ou en ouvrant une conversation depuis
+  // la fenêtre Amis). Cliquer une icône de la barre reste un simple parcours.
+  if (source) {
+    vueMenu = source.type === 'mp' ? 'mp'
+      : estLeLobby(source.id) ? 'lobby'
+      : etat.serveurId
   }
 
   dessinerMenu()
@@ -436,15 +454,17 @@ function brancherInterface() {
   const ouvrirLobby = () => {
     const salon = salonDuLobby()
     if (!salon) return
-    // Le Lobby n'est pas un serveur : aucun serveur n'est sélectionné.
+    // Le Lobby n'est pas un serveur : aucun serveur n'est sélectionné, et le
+    // menu ne doit plus montrer le dernier serveur visité.
     etat.serveurId = null
+    vueMenu = 'lobby'
     void ouvrirFil({ type: 'salon', id: salon.id })
     fermerMenu()
   }
 
   // Membre : on y va. Sinon, le panneau explique avant de proposer d'y revenir.
   $('#ouvrir-lobby').addEventListener('click', () => {
-    if (etat.lobby?.estMembre) { vueMenu = null; ouvrirLobby(); return }
+    if (etat.lobby?.estMembre) { ouvrirLobby(); return }
     vueMenu = 'lobby'
     dessinerMenu()
   })
@@ -452,8 +472,13 @@ function brancherInterface() {
   $('#rejoindre-lobby').addEventListener('click', async () => {
     const probleme = await serveurs.rejoindreLobby()
     if (probleme) { console.error('Rejoindre le Lobby', probleme); return }
-    vueMenu = null
     ouvrirLobby()
+  })
+
+  $('#aller-lobby').addEventListener('click', ouvrirLobby)
+  $('#quitter-lobby-menu').addEventListener('click', async () => {
+    const probleme = await serveurs.quitterLobby()
+    if (probleme) console.error('Quitter le Lobby', probleme)
   })
 
   $('#vue-mp').addEventListener('click', () => { vueMenu = 'mp'; dessinerMenu() })

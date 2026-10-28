@@ -92,11 +92,15 @@
     </nav>
 
     <div class="menu__panneau">
-      <!-- Lobby quitté : on explique avant de proposer d'y revenir. -->
+      <!-- Le Lobby : ce qu'il est, et y entrer, y revenir ou le quitter. -->
       <section id="panneau-lobby" hidden>
         <p class="titre-section menu__titre-panneau">Lobby</p>
         <p class="menu__texte">Le salon commun de Nyx. Y être rend ton profil et ta présence visibles de tous ses membres.</p>
+        <p class="menu__texte" id="membres-lobby" hidden></p>
         <button class="bouton bouton--primaire menu__bouton-plein" id="rejoindre-lobby" type="button">Rejoindre le Lobby</button>
+        <button class="bouton bouton--primaire menu__bouton-plein" id="aller-lobby" type="button" hidden>Ouvrir le Lobby</button>
+        <button class="bouton bouton--fantome menu__bouton-plein" id="quitter-lobby-menu" type="button" hidden
+                style="margin-top:.5rem">Quitter le Lobby</button>
       </section>
 
       <section id="bloc-mp" hidden>
