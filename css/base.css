@@ -255,6 +255,10 @@ h1, h2, h3, h4 {
   padding: 0 1.5rem 1.5rem;
 }
 
+/* Une zone fixe (solde, onglets, filtres) entre le titre et le corps : le
+   corps n'a pas de marge haute, son contenu venait se coller dessous. */
+.modale__entete ~ :not(.modale__corps) + .modale__corps { margin-top: 1rem; }
+
 .modale__pied {
   display: flex;
   justify-content: flex-end;
