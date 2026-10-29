@@ -102,6 +102,13 @@ body { overflow: hidden; }
   display: grid;
   grid-auto-flow: column;
   grid-template-rows: repeat(auto-fill, 92px);
+  /* Colonnes de la largeur d'une icône, serrées à gauche. Sans cela, les
+     colonnes « auto » s'étirent à toute la largeur du conteneur quand il en
+     prend plus que nécessaire (selon le navigateur) : une icône passée en
+     deuxième colonne atterrissait au milieu de l'écran. */
+  grid-auto-columns: 92px;
+  justify-content: start;
+  align-content: start;
   gap: 2px;
   top: 12px;
   left: 12px;
