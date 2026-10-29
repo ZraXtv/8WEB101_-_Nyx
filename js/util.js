@@ -77,6 +77,19 @@ export function quand(iso) {
   return `${jour} ${h}`
 }
 
+/** « Aujourd’hui », « Hier », sinon « Lundi 26 octobre 2026 ». */
+export function jour(iso) {
+  const date = new Date(iso)
+  const hier = new Date()
+  hier.setDate(hier.getDate() - 1)
+
+  if (date.toDateString() === new Date().toDateString()) return 'Aujourd’hui'
+  if (date.toDateString() === hier.toDateString()) return 'Hier'
+
+  const texte = date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+  return texte.charAt(0).toUpperCase() + texte.slice(1)
+}
+
 /** Première lettre, pour les avatars sans photo. */
 export function initiale(nom) {
   return String(nom ?? '?').trim().charAt(0).toUpperCase() || '?'

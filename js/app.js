@@ -21,7 +21,7 @@ import * as paris from './paris.js'
 import * as boutique from './boutique.js'
 import * as carte from './carte-profil.js'
 import * as jeu from './puissance4.js'
-import { dessinerFil } from './vue-messages.js'
+import { dessinerFil, bandeauSaisie } from './vue-messages.js'
 import { matchEnLigne, matchEmpile } from './vue-scores.js'
 import { construireChoix, initialiser as initialiserTheme } from './theme.js'
 import * as cosmetiques from './cosmetiques.js'
@@ -324,9 +324,41 @@ function dessinerMessages() {
     luJusqua: conversation.luPar(autres),
     recuJusqua: conversation.recuPar(autres),
     quiEcrit: conversation.nomsQuiEcrivent(),
+    ...optionsEdition(),
   })
 
   $('#fil').scrollTop = $('#fil').scrollHeight
+}
+
+
+/** Répondre, modifier, supprimer : rien sans la migration 0018. */
+function optionsEdition() {
+  if (!conversation.edition) return {}
+  const salon = salonCourant()
+  return {
+    actions: { repondre: conversation.repondreA, modifier: conversation.modifier, supprimer: conversation.supprimer },
+    // Dans un salon, propriétaire et administrateurs suppriment aussi les messages des autres.
+    moderation: Boolean(salon) && ['owner', 'admin'].includes(serveurDuSalon(salon.id)?.monRole),
+    citation: conversation.citation,
+  }
+}
+
+/** Bandeau « Réponse à… » / « Modification… » au-dessus de la saisie. */
+let modePrecedent = null
+function dessinerSaisie(cible) {
+  const champ = $('#champ-message')
+  $('#saisie .bandeau-saisie')?.remove()
+
+  const bandeau = bandeauSaisie(cible, () => conversation.annulerSaisie())
+  if (bandeau) $('#saisie').prepend(bandeau)
+
+  // Modification abandonnée : son texte n'a plus rien à faire dans le champ.
+  if (modePrecedent === 'modification') champ.value = ''
+  if (cible?.mode === 'modification') champ.value = cible.message.content
+  modePrecedent = cible?.mode ?? null
+
+  $('#envoyer').disabled = champ.value.trim().length === 0
+  if (cible) champ.focus()
 }
 
 
@@ -538,6 +570,10 @@ function brancherInterface() {
   const champMessage = $('#champ-message')
   const boutonEnvoi = $('#envoyer')
 
+  champMessage.addEventListener('keydown', (evenement) => {
+    if (evenement.key === 'Escape') conversation.annulerSaisie()
+  })
+
   champMessage.addEventListener('input', () => {
     boutonEnvoi.disabled = champMessage.value.trim().length === 0
     if (champMessage.value.trim()) conversation.signaleFrappe()
@@ -578,6 +614,7 @@ ecoute('messages', ({ chargement, erreur }) => {
 })
 
 ecoute('frappe', dessinerMessages)
+ecoute('saisie', dessinerSaisie)
 
 // Un message d'autrui vient d'arriver : on se signale tout de suite, sans
 // attendre le battement périodique. C'est littéralement « reçu ».

@@ -20,7 +20,7 @@ import { etat, ecoute, emet, conversationCourante, serveurDuSalon, salonDuLobby,
 import { chargerTout } from './donnees.js'
 import { exigeConnexion, deconnexion } from './auth.js'
 import { $, $$, el, vide, alerte, avatar } from './util.js'
-import { dessinerFil } from './vue-messages.js'
+import { dessinerFil, bandeauSaisie } from './vue-messages.js'
 import { matchEmpile } from './vue-scores.js'
 import {
   installerFenetre, installerRedimensionnement,
@@ -498,6 +498,10 @@ function creerFenetre({ cle, titre, icone: image, fils }) {
     },
   }, champ, envoyer)
 
+  champ.addEventListener('keydown', (evenement) => {
+    if (evenement.key === 'Escape') conversation.annulerSaisie()
+  })
+
   champ.addEventListener('input', () => {
     envoyer.disabled = champ.value.trim().length === 0
     if (champ.value.trim()) conversation.signaleFrappe()
@@ -512,6 +516,8 @@ function creerFenetre({ cle, titre, icone: image, fils }) {
   fenetre.__filInterieur = filInterieur
   fenetre.__entete = entete
   fenetre.__champ = champ
+  fenetre.__saisie = saisie
+  fenetre.__envoyer = envoyer
 
   /*
    * Cliquer une fenêtre d'arrière-plan la réactive.
@@ -702,9 +708,54 @@ function dessinerMessages() {
     recuJusqua: conversation.recuPar(autres),
     quiEcrit: conversation.nomsQuiEcrivent(),
     classeVide: 'chat-vide',
+    ...optionsEdition(),
   })
 
   fenetre.__filBoite.scrollTop = fenetre.__filBoite.scrollHeight
+}
+
+/** Répondre, modifier, supprimer : rien sans la migration 0018. */
+function optionsEdition() {
+  if (!conversation.edition) return {}
+  const salonId = etat.source?.type === 'salon' ? etat.source.id : null
+  return {
+    actions: { repondre: conversation.repondreA, modifier: conversation.modifier, supprimer: conversation.supprimer },
+    // Dans un salon, propriétaire et administrateurs suppriment aussi les messages des autres.
+    moderation: Boolean(salonId) && ['owner', 'admin'].includes(serveurDuSalon(salonId)?.monRole),
+    citation: conversation.citation,
+  }
+}
+
+/**
+ * Bandeau « Réponse à… » / « Modification… » au-dessus de la saisie de la
+ * fenêtre au premier plan : c'est elle qui porte le fil courant.
+ */
+let modePrecedent = null
+let fenetreSaisie = null
+function dessinerSaisie(cible) {
+  for (const f of fenetres.values()) {
+    const avant = f.__saisie?.previousElementSibling
+    if (avant?.classList.contains('bandeau-saisie')) avant.remove()
+  }
+
+  // Modification abandonnée : son texte n'a plus rien à faire dans le champ,
+  // y compris si l'on vient de passer à une autre fenêtre.
+  if (modePrecedent === 'modification' && fenetreSaisie?.__champ) {
+    fenetreSaisie.__champ.value = ''
+    fenetreSaisie.__envoyer.disabled = true
+  }
+
+  const fenetre = cible ? fenetreActive() : null
+  if (fenetre) {
+    const champ = fenetre.__champ
+    fenetre.__saisie.before(bandeauSaisie(cible, () => conversation.annulerSaisie()))
+    if (cible.mode === 'modification') champ.value = cible.message.content
+    fenetre.__envoyer.disabled = champ.value.trim().length === 0
+    champ.focus()
+  }
+
+  modePrecedent = cible?.mode ?? null
+  fenetreSaisie = fenetre
 }
 
 /* ======================= Gadget de bureau ======================= */
@@ -789,6 +840,7 @@ ecoute('messages', ({ chargement }) => {
 })
 
 ecoute('frappe', dessinerMessages)
+ecoute('saisie', dessinerSaisie)
 ecoute('scores', dessinerGadget)
 ecoute('recu-message', () => void presence.battre())
 /*

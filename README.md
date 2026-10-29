@@ -60,6 +60,9 @@ réel reposent sur [Supabase](https://supabase.com).
 - **Temps réel** — messages sans rechargement, indicateur « en train
   d'écrire », présence en ligne, accusés envoyé / reçu / lu, et le nombre
   de messages non lus dans le titre de l'onglet.
+- **Fil de discussion** — messages regroupés par jour sous une date
+  (« Aujourd'hui », « Hier »…) ; on répond à un message en le citant, on
+  modifie ou supprime les siens (« Le message a été supprimé. »).
 - **Profil** — photo, nom affiché, présentation.
 - **Puissance 4** — une partie se lance depuis un salon ou une conversation ;
   les règles sont vérifiées par la base de données, pas par le navigateur.
@@ -135,8 +138,12 @@ nécessaire, et refuse de se relancer une fois `0015` en place.
 Puis `0016_boutique.sql` ouvre la boutique. Elle s'appuie sur les
 portefeuilles des paris : exécute-la après `0013`.
 
-Enfin, `0017_lobby_sans_proprietaire.sql` fait du Lobby un salon commun qui
+Puis `0017_lobby_sans_proprietaire.sql` fait du Lobby un salon commun qui
 n'appartient à personne : exécute-la après `0015`.
+
+Enfin, `0018_messages_edition.sql` permet de répondre à un message, de le
+modifier et de le supprimer. Tant qu'elle n'est pas exécutée, les messages
+s'affichent normalement, sans ces actions.
 
 ### 3. La configuration
 

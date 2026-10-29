@@ -147,6 +147,93 @@ body.app { overflow: hidden; }
   color: var(--texte-attenue);
 }
 
+/* Un message : sa bulle, et ses actions à côté. */
+.message {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: 100%;
+  border-radius: var(--rayon-bulle);
+  outline: none;
+}
+.groupe--moi .message { flex-direction: row-reverse; }
+.message:focus-visible .bulle { box-shadow: 0 0 0 2px var(--anneau); }
+
+.message__actions {
+  display: flex;
+  flex: none;
+  gap: 0.125rem;
+  visibility: hidden;
+}
+.message:hover .message__actions,
+.message:focus-within .message__actions { visibility: visible; }
+
+.message__action {
+  width: 1.75rem; height: 1.75rem;
+  border-radius: 50%;
+  font-size: 0.875rem;
+  line-height: 1;
+  color: var(--texte-attenue);
+}
+.message__action:hover,
+.message__action:focus-visible { background: var(--attenue); color: var(--texte); }
+.message__action--danger:hover,
+.message__action--danger:focus-visible { color: var(--danger); }
+
+.bulle__modifie { font-size: 0.6875rem; opacity: 0.7; }
+
+.bulle--supprimee {
+  background: none;
+  border: 1px dashed var(--bordure);
+  color: var(--texte-attenue);
+  font-style: italic;
+}
+
+/* Rappel du message auquel on répond, en tête de la bulle. */
+.citation {
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  margin-bottom: 0.375rem;
+  padding: 0.25rem 0.5rem;
+  border-left: 3px solid currentColor;
+  border-radius: 0.25rem;
+  background: color-mix(in oklch, currentColor 10%, transparent);
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  text-align: left;
+  white-space: normal;
+  opacity: 0.85;
+}
+button.citation { cursor: pointer; }
+button.citation:hover { opacity: 1; }
+.citation__auteur { font-weight: 600; }
+.citation__texte { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.citation--absente { font-style: italic; }
+
+/* Le message cité, retrouvé après un clic sur la citation. */
+.message--repere .bulle { animation: repere 1.6s ease-out; }
+@keyframes repere {
+  0%, 40% { box-shadow: 0 0 0 3px var(--accent); }
+  100%    { box-shadow: 0 0 0 3px transparent; }
+}
+
+/* Séparateur de journée : « Aujourd'hui », « Hier », « Lundi 26 octobre 2026 ». */
+.fil__jour {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--texte-attenue);
+}
+.fil__jour::before,
+.fil__jour::after {
+  content: '';
+  flex: 1;
+  border-top: 1px solid var(--bordure);
+}
+
 /* Accusés : une coche = envoyé, deux = reçu, deux colorées = lu. */
 .accuse { display: inline-flex; }
 .accuse--lu { color: var(--primaire); }
@@ -197,7 +284,9 @@ body.app { overflow: hidden; }
   bottom: 1rem;
   z-index: 30;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
   padding-inline: 1rem;
   pointer-events: none;
 }
@@ -239,6 +328,38 @@ body.app { overflow: hidden; }
   transition: opacity 0.15s;
 }
 .saisie__envoi[disabled] { opacity: 0.4; cursor: not-allowed; }
+
+/* « Réponse à Alice » / « Modification du message », au-dessus de la saisie. */
+.bandeau-saisie {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 36rem;
+  padding: 0.375rem 0.5rem 0.375rem 1rem;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--saisie-fond);
+  backdrop-filter: blur(var(--flou));
+  font-size: 0.8125rem;
+  color: var(--texte-attenue);
+  pointer-events: auto;
+}
+.bandeau-saisie strong { color: var(--texte); font-weight: 600; }
+.bandeau-saisie__texte {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bandeau-saisie__annuler {
+  flex: none;
+  width: 1.75rem; height: 1.75rem;
+  border-radius: 50%;
+  color: var(--texte-attenue);
+}
+.bandeau-saisie__annuler:hover { background: var(--attenue); color: var(--texte); }
 
 /* ---- Encart de suivi --------------------------------------------------- */
 

@@ -285,9 +285,40 @@ tout le monde, rôle « membre » par défaut et sans aucun salon lisible.
 `donnees.js` fait maintenant le tri, et garde le Lobby quitté à part pour
 proposer d'y revenir.
 
-**Limite connue** : l'application ne permet pas encore de supprimer un
-message. Dans un salon où tout le monde est présent, un message indésirable ne
-se retire que depuis le dashboard.
+**Limite connue** : le Lobby n'ayant ni propriétaire ni administrateur,
+personne ne peut y supprimer le message d'un autre (voir ci-dessous). Un
+message indésirable ne se retire que depuis le dashboard.
+
+---
+
+## Répondre, modifier, supprimer
+
+Migration 0018. Les deux tables de messages gagnent `reply_to` (le message
+cité) et `deleted_at`.
+
+**Supprimer ne supprime pas la ligne.** `supprimer_message` vide le texte et
+pose `deleted_at` : le fil affiche « Le message a été supprimé. » à sa place,
+et une réponse qui le citait reste lisible. Le texte, lui, disparaît bien de
+la base. Dans un salon, propriétaire et administrateurs peuvent supprimer les
+messages des autres, comme le permettait déjà la règle de DELETE ; en privé,
+seulement l'auteur.
+
+**Modifier passe par `modifier_message`**, et la règle d'UPDATE directe a été
+retirée : elle laissait l'auteur réécrire n'importe quelle colonne de son
+message — le déplacer dans un autre salon, changer sa date ou le faire passer
+pour une annonce de l'application (`kind = 'system'`).
+
+**Une réponse ne cite qu'un message du même fil** : un déclencheur le
+vérifie à l'insertion. Le message cité est pris dans la page chargée ; s'il
+est plus ancien que les 50 derniers, `conversation.js` va le chercher à part.
+
+**Sans la migration**, le premier chargement d'un fil échoue sur une colonne
+inconnue : `conversation.js` le relance sans `reply_to` ni `deleted_at`, et
+les actions restent cachées (`conversation.edition` à faux).
+
+Les actions apparaissent au survol d'un message, ou quand on le touche sur
+téléphone (il prend alors le focus). Répondre et modifier affichent un bandeau
+au-dessus de la saisie ; Échap l'annule.
 
 ---
 
