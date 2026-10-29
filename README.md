@@ -145,6 +145,9 @@ Enfin, `0018_messages_edition.sql` permet de répondre à un message, de le
 modifier et de le supprimer. Tant qu'elle n'est pas exécutée, les messages
 s'affichent normalement, sans ces actions.
 
+`0019_amities_inviolables.sql` corrige une faille : le destinataire d'une
+demande d'ami pouvait la réécrire pour se déclarer ami de n'importe qui.
+
 ### 3. La configuration
 
 `config.js` est fourni : il pointe vers le projet Supabase de l'équipe, et le
